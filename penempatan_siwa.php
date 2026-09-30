@@ -1,0 +1,1 @@
+<?php require 'cek_akses.php'; ?><!doctype html><html lang="id"><head><meta charset="utf-8"><title>Penempatan Siwa</title></head><body><h1>Penempatan Siwa</h1><p>Pengelolaan penempatan siswa ke kelas.</p><p><a href="dashboard.php">Kembali ke Dashboard</a></p></body></html>

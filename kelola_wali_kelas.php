@@ -1,0 +1,1 @@
+<?php require 'cek_akses.php'; ?><!doctype html><html lang="id"><head><meta charset="utf-8"><title>Kelola Wali Kelas</title></head><body><h1>Kelola Wali Kelas</h1><p>Pengelolaan wali kelas.</p><p><a href="dashboard.php">Kembali ke Dashboard</a></p></body></html>
