@@ -15,7 +15,6 @@ $menuAdmin = [
     ['Kelola Wali Kelas','kelola_wali_kelas.php'],
     ['Kelola Kategori Pelanggaran','kelola_kategori_pelanggaran.php'],
     ['Laporan','laporan.php'],
-    ['Eksport','eksport.php'],
     ['Logout','logout.php'],
 ];
 
@@ -43,3 +42,4 @@ $menus = $role === 'admin' ? $menuAdmin : $menuGuru;
 </ul>
 </body>
 </html>
+
