@@ -1,3 +1,4 @@
+```php
 <?php
 session_start();
 
@@ -9,410 +10,715 @@ if (!isset($_SESSION['user_id'])) {
 $name = $_SESSION['name'] ?? 'User';
 $role = $_SESSION['role'] ?? '';
 
-/*
-|--------------------------------------------------------------------------
-| Menu 3 hanya untuk Admin dan Guru
-|--------------------------------------------------------------------------
-*/
-if (!in_array($role, ['admin', 'guru'])) {
-    die("Akses ditolak");
+if (!in_array($role, ['admin', 'guru'], true)) {
+    http_response_code(403);
+    die("Akses ditolak.");
 }
 
 require 'koneksi.php';
 
-/*
-|--------------------------------------------------------------------------
-| TAMBAH DATA
-|--------------------------------------------------------------------------
-*/
+function e($value)
+{
+    return htmlspecialchars((string)($value ?? ''), ENT_QUOTES, 'UTF-8');
+}
+
+/* =========================
+   TAMBAH DATA
+========================= */
 if (isset($_POST['tambah'])) {
+    $kode = trim($_POST['kode'] ?? '');
+    $nama_pelanggaran = trim($_POST['nama_pelanggaran'] ?? '');
 
-    $kode = trim($_POST['kode']);
-    $nama_pelanggaran = trim($_POST['nama_pelanggaran']);
-
-    if ($kode == '' || $nama_pelanggaran == '') {
-        echo "<script>
-                alert('Kode dan nama pelanggaran wajib diisi!');
-                window.location='menu3.php';
-              </script>";
+    if ($kode === '' || $nama_pelanggaran === '') {
+        echo "<script>alert('Kode dan nama pelanggaran wajib diisi!');location.href='menu3.php';</script>";
         exit;
     }
 
     try {
         $stmt = $pdo->prepare("
-            INSERT INTO t_pelanggaran
-            (kode, nama_pelanggaran)
-            VALUES
-            (:kode, :nama_pelanggaran)
+            INSERT INTO t_pelanggaran (kode, nama_pelanggaran)
+            VALUES (:kode, :nama_pelanggaran)
         ");
 
         $stmt->execute([
-            ':kode' => $kode,
-            ':nama_pelanggaran' => $nama_pelanggaran
+            'kode' => $kode,
+            'nama_pelanggaran' => $nama_pelanggaran
         ]);
 
-        echo "<script>
-                alert('Jenis pelanggaran berhasil ditambahkan!');
-                window.location='menu3.php';
-              </script>";
+        header("Location: menu3.php?pesan=tambah");
         exit;
-
     } catch (PDOException $e) {
-
-        echo "<script>
-                alert('Gagal menambahkan data: " . addslashes($e->getMessage()) . "');
-                window.location='menu3.php';
-              </script>";
+        echo "<script>alert('Gagal menambahkan data. Periksa kode pelanggaran dan struktur tabel.');location.href='menu3.php';</script>";
         exit;
     }
 }
 
-/*
-|--------------------------------------------------------------------------
-| UPDATE DATA
-|--------------------------------------------------------------------------
-*/
+/* =========================
+   EDIT DATA
+========================= */
 if (isset($_POST['edit'])) {
+    $id = (int)($_POST['id'] ?? 0);
+    $kode = trim($_POST['kode'] ?? '');
+    $nama_pelanggaran = trim($_POST['nama_pelanggaran'] ?? '');
 
-    $id = $_POST['id'];
-    $kode = trim($_POST['kode']);
-    $nama_pelanggaran = trim($_POST['nama_pelanggaran']);
-
-    if ($kode == '' || $nama_pelanggaran == '') {
-        echo "<script>
-                alert('Kode dan nama pelanggaran wajib diisi!');
-                window.location='menu3.php';
-              </script>";
+    if ($id < 1 || $kode === '' || $nama_pelanggaran === '') {
+        echo "<script>alert('Semua data wajib diisi!');location.href='menu3.php';</script>";
         exit;
     }
 
     try {
         $stmt = $pdo->prepare("
             UPDATE t_pelanggaran
-            SET
-                kode = :kode,
+            SET kode = :kode,
                 nama_pelanggaran = :nama_pelanggaran
             WHERE id = :id
         ");
 
         $stmt->execute([
-            ':kode' => $kode,
-            ':nama_pelanggaran' => $nama_pelanggaran,
-            ':id' => $id
+            'kode' => $kode,
+            'nama_pelanggaran' => $nama_pelanggaran,
+            'id' => $id
         ]);
 
-        echo "<script>
-                alert('Jenis pelanggaran berhasil diperbarui!');
-                window.location='menu3.php';
-              </script>";
+        header("Location: menu3.php?pesan=edit");
         exit;
-
     } catch (PDOException $e) {
-
-        echo "<script>
-                alert('Gagal memperbarui data: " . addslashes($e->getMessage()) . "');
-                window.location='menu3.php';
-              </script>";
+        echo "<script>alert('Gagal memperbarui data. Periksa kembali data yang dimasukkan.');location.href='menu3.php';</script>";
         exit;
     }
 }
 
-/*
-|--------------------------------------------------------------------------
-| HAPUS DATA
-|--------------------------------------------------------------------------
-*/
+/* =========================
+   HAPUS DATA
+========================= */
 if (isset($_GET['hapus'])) {
+    $id = (int)$_GET['hapus'];
 
-    $id = $_GET['hapus'];
+    if ($id > 0) {
+        try {
+            $stmt = $pdo->prepare("
+                DELETE FROM t_pelanggaran
+                WHERE id = :id
+            ");
 
-    try {
+            $stmt->execute(['id' => $id]);
 
-        $stmt = $pdo->prepare("
-            DELETE FROM t_pelanggaran
-            WHERE id = :id
-        ");
-
-        $stmt->execute([
-            ':id' => $id
-        ]);
-
-        echo "<script>
-                alert('Jenis pelanggaran berhasil dihapus!');
-                window.location='menu3.php';
-              </script>";
-        exit;
-
-    } catch (PDOException $e) {
-
-        echo "<script>
-                alert('Data tidak dapat dihapus. Data mungkin masih digunakan.');
-                window.location='menu3.php';
-              </script>";
-        exit;
+            header("Location: menu3.php?pesan=hapus");
+            exit;
+        } catch (PDOException $e) {
+            echo "<script>alert('Data tidak dapat dihapus karena mungkin masih digunakan.');location.href='menu3.php';</script>";
+            exit;
+        }
     }
+
+    header("Location: menu3.php");
+    exit;
 }
 
-/*
-|--------------------------------------------------------------------------
-| EDIT DATA
-|--------------------------------------------------------------------------
-*/
+/* =========================
+   AMBIL DATA UNTUK EDIT
+========================= */
 $data_edit = null;
 
 if (isset($_GET['edit'])) {
-
-    $id = $_GET['edit'];
+    $id_edit = (int)$_GET['edit'];
 
     $stmt = $pdo->prepare("
-        SELECT *
+        SELECT id, kode, nama_pelanggaran
         FROM t_pelanggaran
         WHERE id = :id
     ");
 
-    $stmt->execute([
-        ':id' => $id
-    ]);
-
+    $stmt->execute(['id' => $id_edit]);
     $data_edit = $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
-/*
-|--------------------------------------------------------------------------
-| PENCARIAN
-|--------------------------------------------------------------------------
-*/
-$cari = $_GET['cari'] ?? '';
+/* =========================
+   PENCARIAN DATA
+========================= */
+$cari = trim($_GET['cari'] ?? '');
 
-if ($cari != '') {
-
+if ($cari !== '') {
     $stmt = $pdo->prepare("
-        SELECT *
+        SELECT id, kode, nama_pelanggaran
         FROM t_pelanggaran
         WHERE kode LIKE :cari
-        OR nama_pelanggaran LIKE :cari
+           OR nama_pelanggaran LIKE :cari
         ORDER BY id DESC
     ");
 
-    $stmt->execute([
-        ':cari' => "%$cari%"
-    ]);
-
+    $stmt->execute(['cari' => "%$cari%"]);
 } else {
-
     $stmt = $pdo->query("
-        SELECT *
+        SELECT id, kode, nama_pelanggaran
         FROM t_pelanggaran
         ORDER BY id DESC
     ");
 }
 
 $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
+$total_data = count($data);
+$pesan = $_GET['pesan'] ?? '';
 ?>
 
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kelola Jenis Pelanggaran | UKK 2026</title>
 
-    <meta charset="UTF-8">
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
-    <title>Kelola Jenis Pelanggaran</title>
+body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: #f1f5f9;
+    color: #1e293b;
+    font-size: 14px;
+}
 
+/* HEADER */
+.header {
+    background: #ffffff;
+    padding: 22px 30px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.header h1 {
+    font-size: 25px;
+    margin-bottom: 8px;
+    color: #0f172a;
+}
+
+.header p {
+    color: #64748b;
+}
+
+.header b {
+    color: #2563eb;
+}
+
+/* NAVIGASI */
+.navbar {
+    background: #0f172a;
+    padding: 13px 25px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+}
+
+.navbar a {
+    color: #cbd5e1;
+    text-decoration: none;
+    padding: 10px 12px;
+    border-radius: 7px;
+    transition: .2s;
+}
+
+.navbar a:hover,
+.navbar a.active {
+    background: #2563eb;
+    color: white;
+}
+
+/* KONTEN */
+.container {
+    max-width: 1400px;
+    margin: 28px auto;
+    padding: 0 25px;
+}
+
+.page-heading {
+    margin-bottom: 22px;
+}
+
+.page-heading h2 {
+    font-size: 24px;
+    color: #0f172a;
+    margin-bottom: 7px;
+}
+
+.page-heading p {
+    color: #64748b;
+}
+
+/* KARTU */
+.card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 25px;
+    box-shadow: 0 4px 15px rgba(15, 23, 42, .04);
+}
+
+.card-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 22px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.card-title h3 {
+    color: #0f172a;
+    font-size: 18px;
+}
+
+/* STATISTIK */
+.stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 18px;
+    margin-bottom: 25px;
+}
+
+.stat-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 22px;
+    box-shadow: 0 4px 15px rgba(15, 23, 42, .03);
+}
+
+.stat-card span {
+    display: block;
+    color: #64748b;
+    margin-bottom: 10px;
+}
+
+.stat-card strong {
+    font-size: 28px;
+    color: #2563eb;
+}
+
+/* FORM */
+.form-group {
+    margin-bottom: 18px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 8px;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    transition: .2s;
+}
+
+.form-group input:focus,
+.search-form input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, .10);
+}
+
+/* TOMBOL */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 11px 16px;
+    border: none;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: .2s;
+}
+
+.btn-primary {
+    background: #2563eb;
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: #1d4ed8;
+}
+
+.btn-secondary {
+    background: #e2e8f0;
+    color: #334155;
+}
+
+.btn-secondary:hover {
+    background: #cbd5e1;
+}
+
+.btn-edit {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.btn-edit:hover {
+    background: #bfdbfe;
+}
+
+.btn-delete {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.btn-delete:hover {
+    background: #fecaca;
+}
+
+/* PENCARIAN */
+.search-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.search-form input {
+    flex: 1;
+    min-width: 220px;
+    padding: 12px 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    outline: none;
+}
+
+/* TABEL */
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid #e2e8f0;
+    border-radius: 9px;
+}
+
+table {
+    width: 100%;
+    min-width: 650px;
+    border-collapse: collapse;
+    background: #ffffff;
+}
+
+thead {
+    background: #eff6ff;
+}
+
+th {
+    color: #1e40af;
+    font-weight: 700;
+    text-align: left;
+    padding: 15px 16px;
+    border-bottom: 1px solid #dbeafe;
+    white-space: nowrap;
+}
+
+td {
+    padding: 14px 16px;
+    color: #475569;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+tbody tr:hover {
+    background: #f8fafc;
+}
+
+tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.action-buttons {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+/* BADGE */
+.badge {
+    display: inline-block;
+    background: #dbeafe;
+    color: #1d4ed8;
+    border-radius: 20px;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* NOTIFIKASI */
+.alert {
+    padding: 13px 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.alert-success {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.empty-data {
+    padding: 30px;
+    text-align: center;
+    color: #64748b;
+}
+
+/* FOOTER */
+.footer {
+    text-align: center;
+    color: #94a3b8;
+    padding: 25px;
+    margin-top: 20px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .header {
+        padding: 20px;
+    }
+
+    .header h1 {
+        font-size: 21px;
+    }
+
+    .navbar {
+        padding: 12px;
+    }
+
+    .navbar a {
+        padding: 9px;
+        font-size: 12px;
+    }
+
+    .container {
+        padding: 0 12px;
+        margin-top: 20px;
+    }
+
+    .card {
+        padding: 17px;
+    }
+
+    .search-form {
+        flex-direction: column;
+    }
+
+    .search-form input {
+        width: 100%;
+    }
+
+    .action-buttons {
+        flex-wrap: wrap;
+    }
+}
+</style>
 </head>
 
 <body>
 
-<h1>Kelola Jenis Pelanggaran</h1>
-
-<p>
-    Selamat datang, <b><?= htmlspecialchars($name) ?></b>
-    | Role: <b><?= htmlspecialchars($role) ?></b>
-</p>
-
-<hr>
-
-<!-- MENU -->
-
-<a href="dashboard.php">Dashboard</a> |
-
-<?php if ($role == 'admin'): ?>
-
-    <a href="menu1.php">Kelola Siswa</a> |
-    <a href="menu2.php">Kelola Guru</a> |
-
-<?php endif; ?>
-
-<a href="menu3.php">Kelola Jenis Pelanggaran</a> |
-<a href="menu4.php">Admin</a> |
-<a href="kelola_kelas.php">Kelola Kelas</a> |
-<a href="kelola_tahun_ajaran.php">Kelola Tahun Ajaran</a> |
-<a href="penempatan_siwa.php">Penempatan Siswa</a> |
-<a href="kelola_wali_kelas.php">Kelola Wali Kelas</a> |
-<a href="kelola_kategori_pelanggaran.php">Kelola Kategori Pelanggaran</a> |
-<a href="laporan.php">Laporan</a> |
-<a href="logout.php">Logout</a>
-
-<hr>
-
-<h2>
-    <?= $data_edit ? 'Edit Jenis Pelanggaran' : 'Tambah Jenis Pelanggaran' ?>
-</h2>
-
-<form method="POST">
-
-    <?php if ($data_edit): ?>
-
-        <input
-            type="hidden"
-            name="id"
-            value="<?= htmlspecialchars($data_edit['id']) ?>"
-        >
-
-    <?php endif; ?>
-
+<header class="header">
+    <h1>UKK 2026</h1>
     <p>
-        <label>Kode Pelanggaran</label><br>
-
-        <input
-            type="text"
-            name="kode"
-            placeholder="Contoh: PG-001"
-            value="<?= $data_edit ? htmlspecialchars($data_edit['kode']) : '' ?>"
-            required
-        >
+        Selamat datang,
+        <b><?= e($name) ?></b>
+        &nbsp; | &nbsp; Role:
+        <b><?= e(ucfirst($role)) ?></b>
     </p>
+</header>
 
-    <p>
-        <label>Nama Pelanggaran</label><br>
+<nav class="navbar">
+    <a href="dashboard.php">Dashboard</a>
 
-        <input
-            type="text"
-            name="nama_pelanggaran"
-            placeholder="Contoh: Terlambat datang ke sekolah"
-            value="<?= $data_edit ? htmlspecialchars($data_edit['nama_pelanggaran']) : '' ?>"
-            required
-        >
-    </p>
-
-    <?php if ($data_edit): ?>
-
-        <button type="submit" name="edit">
-            Update
-        </button>
-
-        <a href="menu3.php">
-            Batal
-        </a>
-
-    <?php else: ?>
-
-        <button type="submit" name="tambah">
-            Simpan
-        </button>
-
+    <?php if ($role === 'admin'): ?>
+        <a href="menu1.php">Kelola Siswa</a>
+        <a href="menu2.php">Kelola Guru</a>
     <?php endif; ?>
 
-</form>
+    <a href="menu3.php" class="active">Jenis Pelanggaran</a>
 
-<hr>
-
-<h2>Data Jenis Pelanggaran</h2>
-
-<!-- PENCARIAN -->
-
-<form method="GET">
-
-    <input
-        type="text"
-        name="cari"
-        placeholder="Cari kode atau nama pelanggaran..."
-        value="<?= htmlspecialchars($cari) ?>"
-    >
-
-    <button type="submit">
-        Cari
-    </button>
-
-    <a href="menu3.php">
-        Reset
-    </a>
-
-</form>
-
-<br>
-
-<table border="1" cellpadding="8" cellspacing="0">
-
-    <tr>
-
-        <th>No</th>
-        <th>ID</th>
-        <th>Kode</th>
-        <th>Nama Pelanggaran</th>
-        <th>Aksi</th>
-
-    </tr>
-
-    <?php if (count($data) > 0): ?>
-
-        <?php $no = 1; ?>
-
-        <?php foreach ($data as $row): ?>
-
-            <tr>
-
-                <td>
-                    <?= $no++ ?>
-                </td>
-
-                <td>
-                    <?= htmlspecialchars($row['id']) ?>
-                </td>
-
-                <td>
-                    <?= htmlspecialchars($row['kode']) ?>
-                </td>
-
-                <td>
-                    <?= htmlspecialchars($row['nama_pelanggaran']) ?>
-                </td>
-
-                <td>
-
-                    <a href="menu3.php?edit=<?= $row['id'] ?>">
-                        Edit
-                    </a>
-
-                    |
-
-                    <a
-                        href="menu3.php?hapus=<?= $row['id'] ?>"
-                        onclick="return confirm('Yakin ingin menghapus jenis pelanggaran ini?')"
-                    >
-                        Hapus
-                    </a>
-
-                </td>
-
-            </tr>
-
-        <?php endforeach; ?>
-
-    <?php else: ?>
-
-        <tr>
-
-            <td colspan="5">
-                Belum ada data jenis pelanggaran.
-            </td>
-
-        </tr>
-
+    <?php if ($role === 'admin'): ?>
+        <a href="menu4.php">Admin</a>
+        <a href="kelola_kelas.php">Kelola Kelas</a>
+        <a href="kelola_tahun_ajaran.php">Tahun Ajaran</a>
+        <a href="penempatan_siwa.php">Penempatan Siswa</a>
+        <a href="kelola_wali_kelas.php">Wali Kelas</a>
+        <a href="kelola_kategori_pelanggaran.php">Kategori Pelanggaran</a>
     <?php endif; ?>
 
-</table>
+    <a href="laporan.php">Laporan</a>
+    <a href="logout.php">Logout</a>
+</nav>
+
+<main class="container">
+
+    <div class="page-heading">
+        <h2>Kelola Jenis Pelanggaran</h2>
+        <p>Kelola kode dan nama jenis pelanggaran siswa.</p>
+    </div>
+
+    <?php if ($pesan !== ''): ?>
+        <div class="alert alert-success">
+            <?php
+            if ($pesan === 'tambah') {
+                echo 'Data jenis pelanggaran berhasil ditambahkan.';
+            } elseif ($pesan === 'edit') {
+                echo 'Data jenis pelanggaran berhasil diperbarui.';
+            } elseif ($pesan === 'hapus') {
+                echo 'Data jenis pelanggaran berhasil dihapus.';
+            }
+            ?>
+        </div>
+    <?php endif; ?>
+
+    <div class="stats">
+        <div class="stat-card">
+            <span>Total data yang ditampilkan</span>
+            <strong><?= $total_data ?></strong>
+        </div>
+    </div>
+
+    <!-- FORM TAMBAH DAN EDIT -->
+    <section class="card">
+        <div class="card-title">
+            <h3>
+                <?= $data_edit ? 'Edit Jenis Pelanggaran' : 'Tambah Jenis Pelanggaran' ?>
+            </h3>
+        </div>
+
+        <form method="POST" action="menu3.php">
+            <?php if ($data_edit): ?>
+                <input type="hidden" name="id" value="<?= e($data_edit['id']) ?>">
+            <?php endif; ?>
+
+            <div class="form-group">
+                <label for="kode">Kode Pelanggaran</label>
+                <input
+                    type="text"
+                    id="kode"
+                    name="kode"
+                    placeholder="Contoh: PG-001"
+                    value="<?= $data_edit ? e($data_edit['kode']) : '' ?>"
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="nama_pelanggaran">Nama Pelanggaran</label>
+                <input
+                    type="text"
+                    id="nama_pelanggaran"
+                    name="nama_pelanggaran"
+                    placeholder="Contoh: Terlambat datang ke sekolah"
+                    value="<?= $data_edit ? e($data_edit['nama_pelanggaran']) : '' ?>"
+                    required
+                >
+            </div>
+
+            <?php if ($data_edit): ?>
+                <button type="submit" name="edit" class="btn btn-primary">
+                    Simpan Perubahan
+                </button>
+
+                <a href="menu3.php" class="btn btn-secondary">Batal</a>
+            <?php else: ?>
+                <button type="submit" name="tambah" class="btn btn-primary">
+                    + Tambah Data
+                </button>
+            <?php endif; ?>
+        </form>
+    </section>
+
+    <!-- TABEL DATA -->
+    <section class="card">
+        <div class="card-title">
+            <h3>Data Jenis Pelanggaran</h3>
+            <span class="badge"><?= $total_data ?> data</span>
+        </div>
+
+        <form method="GET" action="menu3.php" class="search-form">
+            <input
+                type="text"
+                name="cari"
+                placeholder="Cari kode atau nama pelanggaran..."
+                value="<?= e($cari) ?>"
+            >
+
+            <button type="submit" class="btn btn-primary">
+                Cari Data
+            </button>
+
+            <a href="menu3.php" class="btn btn-secondary">Reset</a>
+        </form>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>No.</th>
+                        <th>ID</th>
+                        <th>Kode Pelanggaran</th>
+                        <th>Nama Pelanggaran</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                <?php if ($total_data > 0): ?>
+                    <?php $no = 1; ?>
+
+                    <?php foreach ($data as $row): ?>
+                        <tr>
+                            <td><?= $no++ ?></td>
+                            <td><?= e($row['id']) ?></td>
+                            <td>
+                                <span class="badge"><?= e($row['kode']) ?></span>
+                            </td>
+                            <td><?= e($row['nama_pelanggaran']) ?></td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a
+                                        href="menu3.php?edit=<?= (int)$row['id'] ?>"
+                                        class="btn btn-edit"
+                                    >Edit</a>
+
+                                    <a
+                                        href="menu3.php?hapus=<?= (int)$row['id'] ?>"
+                                        class="btn btn-delete"
+                                        onclick="return confirm('Yakin ingin menghapus jenis pelanggaran ini?')"
+                                    >Hapus</a>
+                                </div>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+
+                <?php else: ?>
+                    <tr>
+                        <td colspan="5" class="empty-data">
+                            Data jenis pelanggaran belum ditemukan.
+                        </td>
+                    </tr>
+                <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+</main>
+
+<footer class="footer">
+    &copy; <?= date('Y') ?> UKK 2026 — Sistem Pelanggaran Siswa
+</footer>
 
 </body>
 </html>
+```
