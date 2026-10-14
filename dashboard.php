@@ -36,30 +36,45 @@ include 'includes/cek_session.php';
                     </a>
                 </li>
                 <li class="nav-item mb-2">
-                    <a href="kelola_kelas.php" class="nav-link text-white">
-                        Kelas
+                    <a href="Kelola_kelas.php" class="nav-link text-white">
+                        Data Kelas
                     </a>
                 </li>
                 <li class="nav-item mb-2">
-                    <a href="laporan.php" class="nav-link text-white">
-                        Laporan
+                    <a href="kelola_tahun_ajaran.php" class="nav-link text-white">
+                        Kelola Tahun Ajaran
                     </a>
                 </li>
                 <li class="nav-item mb-2">
-                    <a href="tentang_saya.php" class="nav-link text-white">
+                    <a href="#" class="nav-link text-white">
+                        Kelola Walikelas
+                    </a>
+                </li>
+                <li class="nav-item mb-2">
+                    <a href="#" class="nav-link text-white">
+                        Penempatan Siswa
+                    </a>
+                </li>
+                <li class="nav-item mb-2">
+                    <a href="#" class="nav-link text-white">
+                        Pelanggaran Kategori
+                    </a>
+                </li>
+                <li class="nav-item mb-2">
+                    <a href="#" class="nav-link text-white">
                         About Me
                     </a>
                 </li>
+                
                 <hr class="text-secondary">
                 <li class="nav-item">
-                    <a href="login.php" class="nav-link text-danger">
+                    <a href="logoout.php" class="nav-link text-danger">
                         Logout
                     </a>
                 </li>
             </ul>
         </div>
-        <!-- KONTEN -->
-        <main class="col-md-9 col-lg-10 p-4">
+          <main class="col-md-9 col-lg-10 p-4">
             <h2>Dashboard</h2>
             <p>
                 Selamat datang di halaman dashboard.
@@ -73,11 +88,7 @@ include 'includes/cek_session.php';
                                 Data Siswa
                             </h5>
                             <h2>
-<<<<<<< HEAD
                                 125
-=======
-                                3000
->>>>>>> 385dba184835d1471028cfc31f21539087bdb38c
                             </h2>
                         </div>
                     </div>
