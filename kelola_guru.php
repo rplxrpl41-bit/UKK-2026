@@ -49,9 +49,7 @@ if (!$hasil) {
 </head>
 
 <body>
-<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.3/dist/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+
 <div class="container-fluid">
     <div class="row">
         <!-- SIDEBAR -->
@@ -86,29 +84,29 @@ if (!$hasil) {
                     </a>
                 </li>
                 <li class="nav-item mb-2">
-                    <a href="kelola_walikelas.php" class="nav-link text-white">
+                    <a href="kelola_wali_kelas.php" class="nav-link text-white">
                         Kelola Walikelas
                     </a>
                 </li>
                 <li class="nav-item mb-2">
-                    <a href="penempatan_siswa.php" class="nav-link text-white">
+                    <a href="penempatan_siwa.php" class="nav-link text-white">
                         Penempatan Siswa
                     </a>
                 </li>
                 <li class="nav-item mb-2">
-                    <a href="kelola_pelanggaran_kategori.php" class="nav-link text-white">
+                    <a href="kelola_kategori_pelanggaran.php" class="nav-link text-white">
                         Pelanggaran Kategori
                     </a>
                 </li>
                 <li class="nav-item mb-2">
-                    <a href="#" class="nav-link text-white">
+                    <a href="tentang_saya.php" class="nav-link text-white">
                         About Me
                     </a>
                 </li>
                 
                 <hr class="text-secondary">
                 <li class="nav-item">
-                    <a href="logoout.php" class="nav-link text-danger">
+                    <a href="logout.php" class="nav-link text-danger">
                         Logout
                     </a>
                 </li>
@@ -223,4 +221,7 @@ if (!$hasil) {
 </table>
 
 </body>
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.3/dist/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
 </html>

@@ -46,29 +46,29 @@ include 'includes/cek_session.php';
                     </a>
                 </li>
                 <li class="nav-item mb-2">
-                    <a href="#" class="nav-link text-white">
+                    <a href="kelola_wali_kelas.php" class="nav-link text-white">
                         Kelola Walikelas
                     </a>
                 </li>
                 <li class="nav-item mb-2">
-                    <a href="#" class="nav-link text-white">
+                    <a href="penempatan_siwa.php" class="nav-link text-white">
                         Penempatan Siswa
                     </a>
                 </li>
                 <li class="nav-item mb-2">
-                    <a href="#" class="nav-link text-white">
+                    <a href="kelola_kategori_pelanggaran.php" class="nav-link text-white">
                         Pelanggaran Kategori
                     </a>
                 </li>
                 <li class="nav-item mb-2">
-                    <a href="#" class="nav-link text-white">
+                    <a href="tentang_saya.php" class="nav-link text-white">
                         About Me
                     </a>
                 </li>
                 
                 <hr class="text-secondary">
                 <li class="nav-item">
-                    <a href="logoout.php" class="nav-link text-danger">
+                    <a href="logout.php" class="nav-link text-danger">
                         Logout
                     </a>
                 </li>
