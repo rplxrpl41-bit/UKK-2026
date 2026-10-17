@@ -75,8 +75,7 @@ if (!$query) {
                 </li>
 
                 <li class="nav-item mb-2">
-                    <a href="kelola_kategori_pelanggaran.php"
-                       class="nav-link active">
+                    <a href="kelola_kategori_pelanggaran.php"class="nav-link active">
                         Pelanggaran Kategori
                     </a>
                 </li>
@@ -125,8 +124,7 @@ if (!$query) {
                 <div class="card-body">
 
                     <div class="table-responsive">
-                        <table class="table table-bordered table-hover
-                                      align-middle mb-0">
+                        <table class="table table-sm table-dark table-bordered align-middle">
 
                             <thead class="table-dark">
                                 <tr>

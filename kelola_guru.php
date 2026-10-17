@@ -1,110 +1,116 @@
+
 <?php
-
 session_start();
-
 include 'config/koneksi.php';
 
-// CEK LOGIN
 if (!isset($_SESSION['login'])) {
     header("Location: login.php");
     exit;
 }
 
-// CEK ROLE
 if ($_SESSION['role'] != 'admin') {
-    echo "Akses ditolak!";
-    exit;
+    die("Akses ditolak!");
 }
 
-// AMBIL DATA GURU
 $sql = "SELECT
-            g.id,
-            g.nip,
-            g.nama,
-            g.email,
-            g.status_aktif,
-            g.created_at,
-            g.updated_at
-        FROM t_guru g
-        JOIN t_users u
-            ON g.user_id = u.id
-        WHERE u.role = 'guru'
-        ORDER BY g.id DESC";
+            ks.*,
+            s.nama AS nama_siswa,
+            k.nama AS nama_kelas,
+            k.tingkat,
+            k.jurusan,
+            ta.nama AS tahun_ajaran
+        FROM t_kelas_siswa ks
+        LEFT JOIN t_siswa s ON ks.siswa_id = s.id
+        LEFT JOIN t_kelas k ON ks.kelas_id = k.id
+        LEFT JOIN t_tahun_ajaran ta
+            ON ks.tahun_ajaran_id = ta.id
+        ORDER BY ks.id DESC";
 
 $hasil = mysqli_query($koneksi, $sql);
 
 if (!$hasil) {
-    die("Gagal mengambil data guru: " . mysqli_error($koneksi));
+    die("Gagal mengambil data: " . mysqli_error($koneksi));
 }
-
 ?>
 
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
     <meta charset="UTF-8">
-    <title>Kelola Guru</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Kelola Kelas</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 
 <body>
 
 <div class="container-fluid">
     <div class="row">
+
         <!-- SIDEBAR -->
         <div class="col-md-3 col-lg-2 bg-dark min-vh-100 p-3">
             <h4 class="text-white mb-4">
                 My Website
             </h4>
+
             <ul class="nav nav-pills flex-column">
                 <li class="nav-item mb-2">
                     <a href="dashboard.php" class="nav-link text-white">
                         Dashboard
                     </a>
                 </li>
+
                 <li class="nav-item mb-2">
                     <a href="kelola_siswa.php" class="nav-link text-white">
                         Data Siswa
                     </a>
                 </li>
+
                 <li class="nav-item mb-2">
                     <a href="kelola_guru.php" class="nav-link active">
                         Data Guru
                     </a>
                 </li>
+
                 <li class="nav-item mb-2">
                     <a href="Kelola_kelas.php" class="nav-link text-white">
                         Data Kelas
                     </a>
                 </li>
+
                 <li class="nav-item mb-2">
                     <a href="kelola_tahun_ajaran.php" class="nav-link text-white">
                         Kelola Tahun Ajaran
                     </a>
                 </li>
+
                 <li class="nav-item mb-2">
                     <a href="kelola_wali_kelas.php" class="nav-link text-white">
                         Kelola Walikelas
                     </a>
                 </li>
+
                 <li class="nav-item mb-2">
-                    <a href="penempatan_siwa.php" class="nav-link text-white">
+                    <a href="kelola_penempatan_siswa.php" class="nav-link text-white">
                         Penempatan Siswa
                     </a>
                 </li>
+
                 <li class="nav-item mb-2">
                     <a href="kelola_kategori_pelanggaran.php" class="nav-link text-white">
                         Pelanggaran Kategori
                     </a>
                 </li>
+
                 <li class="nav-item mb-2">
                     <a href="tentang_saya.php" class="nav-link text-white">
                         About Me
                     </a>
                 </li>
-                
+
                 <hr class="text-secondary">
+
                 <li class="nav-item">
                     <a href="logout.php" class="nav-link text-danger">
                         Logout
@@ -112,116 +118,94 @@ if (!$hasil) {
                 </li>
             </ul>
         </div>
+
         <!-- KONTEN -->
         <main class="col-md-9 col-lg-10 p-4">
 
-<h1>Kelola Guru</h1>
+            <h1>Kelola Kelas Siswa</h1>
 
+            <a href="dashboard.php">Kembali ke Dashboard</a>
+            <br><br>
 
-<a href="dashboard.php">
-    Kembali ke Dashboard
-</a>
+            <a href="tambah_kelas.php">Tambah Kelas Siswa</a>
 
-<br><br>
+            <hr>
 
-<a href="tambah_guru.php">
-    Tambah Guru
-</a>
+            <div class="table-responsive">
+                <table class="table table-sm table-dark table-bordered">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Nama Siswa</th>
+                            <th>Kelas</th>
+                            <th>Tahun Ajaran</th>
+                            <th>Tanggal Mulai</th>
+                            <th>Tanggal Selesai</th>
+                            <th>Status</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
 
-<hr>
+                    <tbody>
+                    <?php
+                    $no = 1;
 
-<h2>Data Guru</h2>
+                    while ($data = mysqli_fetch_assoc($hasil)) {
+                    ?>
+                        <tr>
+                            <td><?php echo $no++; ?></td>
 
-<table class="table table-sm table-dark">
+                            <td>
+                                <?php echo htmlspecialchars($data['nama_siswa'] ?? '-'); ?>
+                            </td>
 
-    <tr>
-        <th>No</th>
-        <th>NIP</th>
-        <th>Nama</th>
-        <th>Email</th>
-        <th>Status</th>
-        <th>Created At</th>
-        <th>Updated At</th>
-        <th>Aksi</th>
-    </tr>
+                            <td>
+                                <?php
+                                echo htmlspecialchars(
+                                    ($data['nama_kelas'] ?? '-') . ' - ' .
+                                    ($data['tingkat'] ?? '-') . ' ' .
+                                    ($data['jurusan'] ?? '')
+                                );
+                                ?>
+                            </td>
 
-    <?php
+                            <td>
+                                <?php echo htmlspecialchars($data['tahun_ajaran'] ?? '-'); ?>
+                            </td>
 
-    $no = 1;
+                            <td>
+                                <?php echo htmlspecialchars($data['tanggal_mulai'] ?? '-'); ?>
+                            </td>
 
-    while ($guru = mysqli_fetch_assoc($hasil)) {
+                            <td>
+                                <?php echo htmlspecialchars($data['tanggal_selesai'] ?? '-'); ?>
+                            </td>
 
-    ?>
+                            <td>
+                                <?php echo ($data['status_aktif'] ?? 0) == 1 ? 'Aktif' : 'Tidak Aktif'; ?>
+                            </td>
 
-    <tr>
+                            <td>
+                                <a href="edit_kelas.php?id=<?php echo $data['id']; ?>"
+                                   class="btn btn-warning btn-sm">Edit</a>
 
-        <td>
-            <?php echo $no++; ?>
-        </td>
+                                <a href="hapus_kelas.php?id=<?php echo $data['id']; ?>"
+                                   class="btn btn-danger btn-sm"
+                                   onclick="return confirm('Yakin ingin menghapus data ini?')">
+                                    Hapus
+                                </a>
+                            </td>
+                        </tr>
+                    <?php } ?>
+                    </tbody>
+                </table>
+            </div>
 
-        <td>
-            <?php echo $guru['nip']; ?>
-        </td>
+        </main>
+    </div>
+</div>
 
-        <td>
-            <?php echo $guru['nama']; ?>
-        </td>
-
-        <td>
-            <?php echo $guru['email']; ?>
-        </td>
-
-        <td>
-
-            <?php
-
-            if ($guru['status_aktif'] == 1) {
-                echo "Aktif";
-            } else {
-                echo "Tidak Aktif";
-            }
-
-            ?>
-
-        </td>
-
-        <td>
-            <?php echo $guru['created_at']; ?>
-        </td>
-
-        <td>
-            <?php echo $guru['updated_at']; ?>
-        </td>
-
-        <td>
-
-            <a href="edit_guru.php?id=<?php echo $guru['id']; ?>">
-                <button type="button" class="btn btn-warning">Edit</button>
-            </a>
-
-            |
-
-            <a
-                href="hapus_guru.php?id=<?php echo $guru['id']; ?>"
-                onclick="return confirm('Yakin ingin menghapus guru ini?')"
-            >
-                <button type="button" class="btn btn-danger">Hapus</button>
-            </a>
-
-        </td>
-
-    </tr>
-
-    <?php
-
-    }
-
-    ?>
-
-</table>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
-<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.3/dist/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
 </html>
