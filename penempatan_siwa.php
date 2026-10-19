@@ -85,19 +85,19 @@ if (!$hasil) {
                     </a>
                 </li>
                 <li class="nav-item mb-2">
-                    <a href="#" class="nav-link text-white">
+                    <a href="kelola_kategori_pelanggaran.php" class="nav-link text-white">
                         Pelanggaran Kategori
                     </a>
                 </li>
                 <li class="nav-item mb-2">
-                    <a href="#" class="nav-link text-white">
+                    <a href="tentang_saya.php" class="nav-link text-white">
                         About Me
                     </a>
                 </li>
                 
                 <hr class="text-secondary">
                 <li class="nav-item">
-                    <a href="logoout.php" class="nav-link text-danger">
+                    <a href="logout.php" class="nav-link text-danger">
                         Logout
                     </a>
                 </li>
