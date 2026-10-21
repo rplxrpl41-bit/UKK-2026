@@ -262,10 +262,7 @@ $totalPelanggaran = hitungData($koneksi, 't_pelanggaran_siswa');
         <!-- SIDEBAR -->
         <aside class="col-md-3 col-lg-2 sidebar">
 
-            <div class="sidebar-title">
-                Sistem Pelanggaran
-            </div>
-
+             <h4>My Website</h4>
             <nav class="nav flex-column">
 
                 <a href="dashboard.php" class="nav-link active">
