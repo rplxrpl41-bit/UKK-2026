@@ -1,5 +1,4 @@
-```php
-<?php
+﻿<?php
 session_start();
 
 if (!isset($_SESSION['user_id'])) {
@@ -23,32 +22,49 @@ function e($value)
 }
 
 /* =========================
+   AMBIL KATEGORI
+========================= */
+$query_kategori = $pdo->query("
+    SELECT id, nama FROM t_pelanggaran_kategori ORDER BY nama ASC
+")->fetchAll(PDO::FETCH_ASSOC);
+
+/* =========================
    TAMBAH DATA
 ========================= */
 if (isset($_POST['tambah'])) {
+    $kategori_id = (int)($_POST['pelanggaran_kategori_id'] ?? 0);
     $kode = trim($_POST['kode'] ?? '');
-    $nama_pelanggaran = trim($_POST['nama_pelanggaran'] ?? '');
+    $nama = trim($_POST['nama'] ?? '');
+    $poin = (int)($_POST['poin'] ?? 0);
+    $deskripsi = trim($_POST['deskripsi'] ?? '');
+    $status_aktif = (int)($_POST['status_aktif'] ?? 1);
 
-    if ($kode === '' || $nama_pelanggaran === '') {
-        echo "<script>alert('Kode dan nama pelanggaran wajib diisi!');location.href='menu3.php';</script>";
+    if ($kategori_id <= 0 || $kode === '' || $nama === '' || $poin < 0) {
+        echo "<script>alert('Kategori, kode, nama, dan poin wajib diisi!');location.href='kelola_jenis_pelanggaran.php';</script>";
         exit;
     }
 
     try {
         $stmt = $pdo->prepare("
-            INSERT INTO t_pelanggaran (kode, nama_pelanggaran)
-            VALUES (:kode, :nama_pelanggaran)
+            INSERT INTO t_pelanggaran
+                (pelanggaran_kategori_id, kode, nama, poin, deskripsi, status_aktif)
+            VALUES
+                (:kategori, :kode, :nama, :poin, :deskripsi, :status)
         ");
 
         $stmt->execute([
-            'kode' => $kode,
-            'nama_pelanggaran' => $nama_pelanggaran
+            ':kategori' => $kategori_id,
+            ':kode' => $kode,
+            ':nama' => $nama,
+            ':poin' => $poin,
+            ':deskripsi' => $deskripsi,
+            ':status' => $status_aktif
         ]);
 
-        header("Location: menu3.php?pesan=tambah");
+        header("Location: kelola_jenis_pelanggaran.php?pesan=tambah");
         exit;
     } catch (PDOException $e) {
-        echo "<script>alert('Gagal menambahkan data. Periksa kode pelanggaran dan struktur tabel.');location.href='menu3.php';</script>";
+        echo "<script>alert('Gagal menambahkan data. Periksa kode pelanggaran dan struktur tabel.');location.href='kelola_jenis_pelanggaran.php';</script>";
         exit;
     }
 }
@@ -58,32 +74,45 @@ if (isset($_POST['tambah'])) {
 ========================= */
 if (isset($_POST['edit'])) {
     $id = (int)($_POST['id'] ?? 0);
+    $kategori_id = (int)($_POST['pelanggaran_kategori_id'] ?? 0);
     $kode = trim($_POST['kode'] ?? '');
-    $nama_pelanggaran = trim($_POST['nama_pelanggaran'] ?? '');
+    $nama = trim($_POST['nama'] ?? '');
+    $poin = (int)($_POST['poin'] ?? 0);
+    $deskripsi = trim($_POST['deskripsi'] ?? '');
+    $status_aktif = (int)($_POST['status_aktif'] ?? 1);
 
-    if ($id < 1 || $kode === '' || $nama_pelanggaran === '') {
-        echo "<script>alert('Semua data wajib diisi!');location.href='menu3.php';</script>";
+    if ($id < 1 || $kategori_id <= 0 || $kode === '' || $nama === '' || $poin < 0) {
+        echo "<script>alert('Semua data wajib diisi!');location.href='kelola_jenis_pelanggaran.php';</script>";
         exit;
     }
 
     try {
         $stmt = $pdo->prepare("
             UPDATE t_pelanggaran
-            SET kode = :kode,
-                nama_pelanggaran = :nama_pelanggaran
+            SET pelanggaran_kategori_id = :kategori,
+                kode = :kode,
+                nama = :nama,
+                poin = :poin,
+                deskripsi = :deskripsi,
+                status_aktif = :status,
+                updated_at = NOW()
             WHERE id = :id
         ");
 
         $stmt->execute([
-            'kode' => $kode,
-            'nama_pelanggaran' => $nama_pelanggaran,
-            'id' => $id
+            ':kategori' => $kategori_id,
+            ':kode' => $kode,
+            ':nama' => $nama,
+            ':poin' => $poin,
+            ':deskripsi' => $deskripsi,
+            ':status' => $status_aktif,
+            ':id' => $id
         ]);
 
-        header("Location: menu3.php?pesan=edit");
+        header("Location: kelola_jenis_pelanggaran.php?pesan=edit");
         exit;
     } catch (PDOException $e) {
-        echo "<script>alert('Gagal memperbarui data. Periksa kembali data yang dimasukkan.');location.href='menu3.php';</script>";
+        echo "<script>alert('Gagal memperbarui data. Periksa kembali data yang dimasukkan.');location.href='kelola_jenis_pelanggaran.php';</script>";
         exit;
     }
 }
@@ -103,15 +132,15 @@ if (isset($_GET['hapus'])) {
 
             $stmt->execute(['id' => $id]);
 
-            header("Location: menu3.php?pesan=hapus");
+            header("Location: kelola_jenis_pelanggaran.php?pesan=hapus");
             exit;
         } catch (PDOException $e) {
-            echo "<script>alert('Data tidak dapat dihapus karena mungkin masih digunakan.');location.href='menu3.php';</script>";
+            echo "<script>alert('Data tidak dapat dihapus karena mungkin masih digunakan.');location.href='kelola_jenis_pelanggaran.php';</script>";
             exit;
         }
     }
 
-    header("Location: menu3.php");
+    header("Location: kelola_jenis_pelanggaran.php");
     exit;
 }
 
@@ -124,7 +153,7 @@ if (isset($_GET['edit'])) {
     $id_edit = (int)$_GET['edit'];
 
     $stmt = $pdo->prepare("
-        SELECT id, kode, nama_pelanggaran
+        SELECT *
         FROM t_pelanggaran
         WHERE id = :id
     ");
@@ -140,19 +169,23 @@ $cari = trim($_GET['cari'] ?? '');
 
 if ($cari !== '') {
     $stmt = $pdo->prepare("
-        SELECT id, kode, nama_pelanggaran
-        FROM t_pelanggaran
-        WHERE kode LIKE :cari
-           OR nama_pelanggaran LIKE :cari
-        ORDER BY id DESC
+        SELECT p.*, k.nama AS nama_kategori
+        FROM t_pelanggaran p
+        LEFT JOIN t_pelanggaran_kategori k
+            ON p.pelanggaran_kategori_id = k.id
+        WHERE p.kode LIKE :cari
+           OR p.nama LIKE :cari
+        ORDER BY p.id DESC
     ");
 
     $stmt->execute(['cari' => "%$cari%"]);
 } else {
     $stmt = $pdo->query("
-        SELECT id, kode, nama_pelanggaran
-        FROM t_pelanggaran
-        ORDER BY id DESC
+        SELECT p.*, k.nama AS nama_kategori
+        FROM t_pelanggaran p
+        LEFT JOIN t_pelanggaran_kategori k
+            ON p.pelanggaran_kategori_id = k.id
+        ORDER BY p.id DESC
     ");
 }
 
@@ -595,10 +628,23 @@ tbody tr:last-child td {
             </h3>
         </div>
 
-        <form method="POST" action="menu3.php">
+        <form method="POST" action="kelola_jenis_pelanggaran.php">
             <?php if ($data_edit): ?>
                 <input type="hidden" name="id" value="<?= e($data_edit['id']) ?>">
             <?php endif; ?>
+
+            <div class="form-group">
+                <label for="pelanggaran_kategori_id">Kategori</label>
+                <select id="pelanggaran_kategori_id" name="pelanggaran_kategori_id" required>
+                    <option value="">-- Pilih Kategori --</option>
+                    <?php foreach ($query_kategori as $kategori): ?>
+                        <option value="<?= (int)$kategori['id'] ?>"
+                            <?= (int)($data_edit['pelanggaran_kategori_id'] ?? 0) === (int)$kategori['id'] ? 'selected' : '' ?>>
+                            <?= e($kategori['nama']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
 
             <div class="form-group">
                 <label for="kode">Kode Pelanggaran</label>
@@ -613,15 +659,40 @@ tbody tr:last-child td {
             </div>
 
             <div class="form-group">
-                <label for="nama_pelanggaran">Nama Pelanggaran</label>
+                <label for="nama">Nama Pelanggaran</label>
                 <input
                     type="text"
-                    id="nama_pelanggaran"
-                    name="nama_pelanggaran"
+                    id="nama"
+                    name="nama"
                     placeholder="Contoh: Terlambat datang ke sekolah"
-                    value="<?= $data_edit ? e($data_edit['nama_pelanggaran']) : '' ?>"
+                    value="<?= $data_edit ? e($data_edit['nama']) : '' ?>"
                     required
                 >
+            </div>
+
+            <div class="form-group">
+                <label for="poin">Poin</label>
+                <input
+                    type="number"
+                    id="poin"
+                    name="poin"
+                    min="0"
+                    value="<?= $data_edit ? (int)$data_edit['poin'] : '0' ?>"
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="deskripsi">Deskripsi</label>
+                <textarea id="deskripsi" name="deskripsi"><?= $data_edit ? e($data_edit['deskripsi']) : '' ?></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="status_aktif">Status</label>
+                <select id="status_aktif" name="status_aktif" required>
+                    <option value="1" <?= (string)($data_edit['status_aktif'] ?? '1') === '1' ? 'selected' : '' ?>>Aktif</option>
+                    <option value="0" <?= (string)($data_edit['status_aktif'] ?? '1') === '0' ? 'selected' : '' ?>>Tidak Aktif</option>
+                </select>
             </div>
 
             <?php if ($data_edit): ?>
@@ -629,7 +700,7 @@ tbody tr:last-child td {
                     Simpan Perubahan
                 </button>
 
-                <a href="menu3.php" class="btn btn-secondary">Batal</a>
+                <a href="kelola_jenis_pelanggaran.php" class="btn btn-secondary">Batal</a>
             <?php else: ?>
                 <button type="submit" name="tambah" class="btn btn-primary">
                     + Tambah Data
@@ -645,7 +716,7 @@ tbody tr:last-child td {
             <span class="badge"><?= $total_data ?> data</span>
         </div>
 
-        <form method="GET" action="menu3.php" class="search-form">
+        <form method="GET" action="kelola_jenis_pelanggaran.php" class="search-form">
             <input
                 type="text"
                 name="cari"
@@ -657,7 +728,7 @@ tbody tr:last-child td {
                 Cari Data
             </button>
 
-            <a href="menu3.php" class="btn btn-secondary">Reset</a>
+            <a href="kelola_jenis_pelanggaran.php" class="btn btn-secondary">Reset</a>
         </form>
 
         <div class="table-wrapper">
@@ -666,8 +737,11 @@ tbody tr:last-child td {
                     <tr>
                         <th>No.</th>
                         <th>ID</th>
+                        <th>Kategori</th>
                         <th>Kode Pelanggaran</th>
                         <th>Nama Pelanggaran</th>
+                        <th>Poin</th>
+                        <th>Status</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -680,19 +754,22 @@ tbody tr:last-child td {
                         <tr>
                             <td><?= $no++ ?></td>
                             <td><?= e($row['id']) ?></td>
+                            <td><?= e($row['nama_kategori'] ?? '-') ?></td>
                             <td>
                                 <span class="badge"><?= e($row['kode']) ?></span>
                             </td>
-                            <td><?= e($row['nama_pelanggaran']) ?></td>
+                            <td><?= e($row['nama']) ?></td>
+                            <td><?= e($row['poin']) ?></td>
+                            <td><?= (int)($row['status_aktif'] ?? 0) === 1 ? 'Aktif' : 'Tidak Aktif' ?></td>
                             <td>
                                 <div class="action-buttons">
                                     <a
-                                        href="menu3.php?edit=<?= (int)$row['id'] ?>"
+                                        href="kelola_jenis_pelanggaran.php?edit=<?= (int)$row['id'] ?>"
                                         class="btn btn-edit"
                                     >Edit</a>
 
                                     <a
-                                        href="menu3.php?hapus=<?= (int)$row['id'] ?>"
+                                        href="kelola_jenis_pelanggaran.php?hapus=<?= (int)$row['id'] ?>"
                                         class="btn btn-delete"
                                         onclick="return confirm('Yakin ingin menghapus jenis pelanggaran ini?')"
                                     >Hapus</a>
@@ -703,7 +780,7 @@ tbody tr:last-child td {
 
                 <?php else: ?>
                     <tr>
-                        <td colspan="5" class="empty-data">
+                        <td colspan="8" class="empty-data">
                             Data jenis pelanggaran belum ditemukan.
                         </td>
                     </tr>
@@ -716,9 +793,8 @@ tbody tr:last-child td {
 </main>
 
 <footer class="footer">
-    &copy; <?= date('Y') ?> UKK 2026 — Sistem Pelanggaran Siswa
+    &copy; <?= date('Y') ?> UKK 2026 â€” Sistem Pelanggaran Siswa
 </footer>
 
 </body>
 </html>
-```

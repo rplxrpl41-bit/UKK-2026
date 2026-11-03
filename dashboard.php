@@ -44,14 +44,15 @@ $totalPelanggaran = hitungData($koneksi, 't_pelanggaran_siswa');
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
           rel="stylesheet">
 
+ 
     <style>
         body {
-            margin: 0;
             background: #f4f6f9;
             font-family: Arial, sans-serif;
-            color: #1e293b;
+            margin: 0;
         }
 
+        /* SIDEBAR - TETAP SEPERTI CONTOH */
         .sidebar {
             background: #172554;
             color: white;
@@ -59,12 +60,9 @@ $totalPelanggaran = hitungData($koneksi, 't_pelanggaran_siswa');
             padding: 22px 15px;
         }
 
-        .sidebar-title {
-            font-size: 20px;
+        .sidebar h4 {
             font-weight: bold;
             margin-bottom: 30px;
-            padding: 0 10px;
-            line-height: 1.5;
         }
 
         .sidebar .nav-link {
@@ -85,14 +83,109 @@ $totalPelanggaran = hitungData($koneksi, 't_pelanggaran_siswa');
             color: white;
         }
 
-        .sidebar .nav-link.logout {
+        .sidebar .logout {
             color: #fca5a5;
         }
 
-        .sidebar hr {
-            border-color: #64748b;
+        /* KONTEN */
+        .content {
+            padding: 28px;
+            min-width: 0;
         }
 
+        .page-title {
+            color: #172554;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .page-description {
+            color: #64748b;
+        }
+
+        /* KARTU */
+        .card-main {
+            background: white;
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
+        }
+
+        /* TABEL */
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        .table thead th {
+            background: #172554;
+            color: white;
+            white-space: nowrap;
+            vertical-align: middle;
+        }
+
+        .table td {
+            vertical-align: middle;
+        }
+
+        /* STATUS */
+        .badge-status {
+            padding: 7px 10px;
+            border-radius: 5px;
+            display: inline-block;
+            white-space: nowrap;
+        }
+
+        .status-aktif {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-nonaktif {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* TOMBOL */
+        .btn-primary {
+            background: #3157d5;
+            border-color: #3157d5;
+        }
+
+        .btn-primary:hover {
+            background: #2445b8;
+            border-color: #2445b8;
+        }
+
+        .dataTables_wrapper {
+            padding-top: 8px;
+        }
+
+        .dataTables_filter input,
+        .dataTables_length select {
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            padding: 5px 8px;
+        }
+
+        .dataTables_info {
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 767px) 
+            .sidebar {
+                min-height: auto;
+            }
+
+            .content {
+                padding: 15px;
+            }
         .main-content {
             padding: 28px;
         }

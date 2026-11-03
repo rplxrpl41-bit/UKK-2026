@@ -226,13 +226,13 @@ function e($nilai) {
 
                 <li class="nav-item">
                     <a href="kelola_siswa.php" class="nav-link">
-                        &#9813; Data Siswa
+                         ♟ Data Siswa
                     </a>
                 </li>
 
                 <li class="nav-item">
                     <a href="kelola_guru.php" class="nav-link">
-                        &#9813; Data Guru
+                         ♟ Data Guru
                     </a>
                 </li>
 
@@ -379,7 +379,8 @@ function e($nilai) {
 
                                         if (
                                             $tanggalSelesai === '' ||
-                                            $tanggalSelesai === '0000-00-00'
+                                            $tanggalSelesai === '0000-00-00' ||
+                                            $tanggalSelesai === '9999-12-31'
                                         ) {
                                             echo '-';
                                         } else {

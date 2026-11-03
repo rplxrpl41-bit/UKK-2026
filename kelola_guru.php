@@ -220,13 +220,13 @@ if (!$hasil) {
 
                 <li class="nav-item">
                     <a href="kelola_siswa.php" class="nav-link">
-                        &#9813; Data Siswa
+                       ♟ Data Siswa
                     </a>
                 </li>
 
                 <li class="nav-item">
                     <a href="kelola_guru.php" class="nav-link active">
-                        &#9813; Data Guru
+                     ♟ Data Guru
                     </a>
                 </li>
 

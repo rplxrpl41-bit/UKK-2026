@@ -1,5 +1,4 @@
-```php
-<?php
+﻿<?php
 session_start();
 
 include 'includes/cek_session.php';
@@ -215,29 +214,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <ul class="nav nav-pills flex-column">
         <li class="nav-item">
-            <a class="nav-link" href="dashboard.php">⌂ Dashboard</a>
+            <a class="nav-link" href="dashboard.php">âŒ‚ Dashboard</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" href="kelola_siswa.php">♟ Data Siswa</a>
+            <a class="nav-link" href="kelola_siswa.php">â™Ÿ Data Siswa</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" href="kelola_guru.php">♟ Data Guru</a>
+            <a class="nav-link" href="kelola_guru.php">â™Ÿ Data Guru</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" href="kelola_kelas.php">▦ Data Kelas</a>
+            <a class="nav-link" href="kelola_kelas.php">â–¦ Data Kelas</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" href="kelola_tahun_ajaran.php">◷ Kelola Tahun Ajaran</a>
+            <a class="nav-link" href="kelola_tahun_ajaran.php">â—· Kelola Tahun Ajaran</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" href="kelola_wali_kelas.php">♙ Kelola Wali Kelas</a>
+            <a class="nav-link" href="kelola_wali_kelas.php">â™™ Kelola Wali Kelas</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" href="kelola_penempatan_siswa.php">⇄ Penempatan Siswa</a>
+            <a class="nav-link" href="kelola_penempatan_siswa.php">â‡„ Penempatan Siswa</a>
         </li>
         <li class="nav-item">
             <a class="nav-link active" href="kelola_kategori_pelanggaran.php">
-                ☷ Kategori Pelanggaran
+                â˜· Kategori Pelanggaran
             </a>
         </li>
         <li class="nav-item">
@@ -250,7 +249,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <a class="nav-link"
                href="logout.php"
                onclick="return confirm('Yakin ingin logout?')">
-                ⇥ Logout
+                â‡¥ Logout
             </a>
         </li>
     </ul>
@@ -322,12 +321,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <div class="d-flex flex-wrap">
                 <button type="submit" class="btn btn-primary mr-2 mb-2">
-                    💾 Simpan Kategori
+                    ðŸ’¾ Simpan Kategori
                 </button>
 
                 <a href="kelola_kategori_pelanggaran.php"
                    class="btn btn-secondary mb-2">
-                    ↩ Kembali
+                    â†© Kembali
                 </a>
             </div>
         </form>
@@ -336,4 +335,3 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 </body>
 </html>
-```

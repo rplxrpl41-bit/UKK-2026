@@ -1,5 +1,4 @@
-```php
-<?php
+﻿<?php
 require 'cek_akses.php';
 require 'koneksi.php';
 
@@ -17,27 +16,27 @@ function e($value) {
 
 /* MENU SIDEBAR */
 $menuAdmin = [
-    ['Dashboard', 'dashboard.php', '▦'],
-    ['Kelola Siswa', 'menu1.php', '♙'],
-    ['Kelola Guru', 'menu2.php', '♟'],
-    ['Kelola Jenis Pelanggaran', 'menu3.php', '⚑'],
-    ['Admin', 'menu4.php', '⚙'],
-    ['Kelola Kelas', 'kelola_kelas.php', '▤'],
-    ['Kelola Tahun Ajaran', 'kelola_tahun_ajaran.php', '▣'],
-    ['Penempatan Siswa', 'penempatan_siwa.php', '⇄'],
-    ['Kelola Wali Kelas', 'kelola_wali_kelas.php', '♧'],
-    ['Kelola Kategori Pelanggaran', 'kelola_kategori_pelanggaran.php', '☷'],
-    ['Laporan', 'laporan.php', '▥'],
-    ['Logout', 'logout.php', '⇥']
+    ['Dashboard', 'dashboard.php', 'â–¦'],
+    ['Kelola Siswa', 'menu1.php', 'â™™'],
+    ['Kelola Guru', 'menu2.php', 'â™Ÿ'],
+    ['Kelola Jenis Pelanggaran', 'menu3.php', 'âš‘'],
+    ['Admin', 'menu4.php', 'âš™'],
+    ['Kelola Kelas', 'kelola_kelas.php', 'â–¤'],
+    ['Kelola Tahun Ajaran', 'kelola_tahun_ajaran.php', 'â–£'],
+    ['Penempatan Siswa', 'penempatan_siwa.php', 'â‡„'],
+    ['Kelola Wali Kelas', 'kelola_wali_kelas.php', 'â™§'],
+    ['Kelola Kategori Pelanggaran', 'kelola_kategori_pelanggaran.php', 'â˜·'],
+    ['Laporan', 'laporan.php', 'â–¥'],
+    ['Logout', 'logout.php', 'â‡¥']
 ];
 
 $menuGuru = [
-    ['Dashboard', 'dashboard.php', '▦'],
-    ['Kelola Siswa', 'menu1.php', '♙'],
-    ['Kelola Jenis Pelanggaran', 'menu3.php', '⚑'],
-    ['Kelola Kategori Pelanggaran', 'kelola_kategori_pelanggaran.php', '☷'],
-    ['Laporan', 'laporan.php', '▥'],
-    ['Logout', 'logout.php', '⇥']
+    ['Dashboard', 'dashboard.php', 'â–¦'],
+    ['Kelola Siswa', 'menu1.php', 'â™™'],
+    ['Kelola Jenis Pelanggaran', 'menu3.php', 'âš‘'],
+    ['Kelola Kategori Pelanggaran', 'kelola_kategori_pelanggaran.php', 'â˜·'],
+    ['Laporan', 'laporan.php', 'â–¥'],
+    ['Logout', 'logout.php', 'â‡¥']
 ];
 
 $menus = $role === 'admin' ? $menuAdmin : $menuGuru;
@@ -451,7 +450,7 @@ tbody tr:last-child td {
             </div>
             <div>
                 <strong><?= e($name) ?></strong>
-                <small><?= e(ucfirst($role)) ?> · UKK 2026</small>
+                <small><?= e(ucfirst($role)) ?> Â· UKK 2026</small>
             </div>
         </div>
     </header>
@@ -515,11 +514,10 @@ tbody tr:last-child td {
     </section>
 
     <footer class="footer">
-        &copy; <?= date('Y') ?> UKK 2026 — Sistem Pelanggaran Siswa
+        &copy; <?= date('Y') ?> UKK 2026 â€” Sistem Pelanggaran Siswa
     </footer>
 
 </main>
 
 </body>
 </html>
-```

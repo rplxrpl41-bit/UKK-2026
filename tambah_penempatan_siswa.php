@@ -34,16 +34,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = mysqli_prepare(
                 $koneksi,
                 "INSERT INTO t_kelas_siswa
-                 (siswa_id, kelas_id, tahun_ajaran_id)
-                 VALUES (?, ?, ?)"
+                 (siswa_id, kelas_id, tahun_ajaran_id, tanggal_mulai, tanggal_selesai, status_aktif)
+                 VALUES (?, ?, ?, ?, ?, ?)"
             );
+
+            $tanggal_mulai = date('Y-m-d');
+            $tanggal_selesai = '9999-12-31';
+            $status_aktif = 1;
 
             mysqli_stmt_bind_param(
                 $stmt,
-                "iii",
+                "iiissi",
                 $siswa_id,
                 $kelas_id,
-                $tahun_ajaran_id
+                $tahun_ajaran_id,
+                $tanggal_mulai,
+                $tanggal_selesai,
+                $status_aktif
             );
 
             if (mysqli_stmt_execute($stmt)) {

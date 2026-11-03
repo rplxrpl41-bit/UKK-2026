@@ -2,12 +2,20 @@
 include 'includes/cek_session.php';
 include 'config/koneksi.php';
 
+// Hanya admin yang boleh menghapus siswa
+if (($_SESSION['role'] ?? '') !== 'admin') {
+    http_response_code(403);
+    exit("Akses ditolak!");
+}
+
 // Ambil ID dari URL
 $id = $_GET['id'] ?? null;
 
 // Validasi ID
-if ($id === null || !is_numeric($id)) {
-    die("ID siswa tidak ditemukan atau tidak valid!");
+if ($id === null || !is_numeric($id) || (int) $id <= 0) {
+    $_SESSION['pesan'] = "ID siswa tidak ditemukan atau tidak valid!";
+    header("Location: kelola_siswa.php");
+    exit;
 }
 
 $id = (int) $id;
@@ -26,11 +34,14 @@ if (!mysqli_stmt_execute($stmt)) {
     die("Gagal menghapus data: " . mysqli_stmt_error($stmt));
 }
 
-// Periksa apakah data benar-benar terhapus
 if (mysqli_stmt_affected_rows($stmt) > 0) {
-    header("Location: menu1.php");
+    mysqli_stmt_close($stmt);
+    header("Location: kelola_siswa.php?pesan=hapus_berhasil");
     exit;
-} else {
-    die("Data dengan ID $id tidak ditemukan di tabel t_siswa!");
 }
+
+mysqli_stmt_close($stmt);
+$_SESSION['pesan'] = "Data siswa dengan ID $id tidak ditemukan.";
+header("Location: kelola_siswa.php");
+exit;
 ?>

@@ -149,8 +149,8 @@ if (!$hasil) {
                             <?php echo $data['status_aktif'] == 1 ? '<span class="badge bg-success">Aktif</span>' : '<span class="badge bg-secondary">Tidak Aktif</span>'; ?>
                         </td>
                         <td>
-                            <a href="edit_penempatan_siswa.php?id=<?php echo $data['id']; ?>" class="btn btn-warning btn-sm">Edit</a>
-                            <a href="hapus_penempatan_siswa.php?id=<?php echo $data['id']; ?>"
+                            <a href="edit_penempatan.php?id=<?php echo $data['id']; ?>" class="btn btn-warning btn-sm">Edit</a>
+                            <a href="hapus_penempatan.php?id=<?php echo $data['id']; ?>"
                                onclick="return confirm('Yakin ingin menghapus data ini?')" class="btn btn-danger btn-sm">
                                 Hapus
                             </a>

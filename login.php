@@ -1,5 +1,4 @@
-```php
-<?php
+﻿<?php
 session_start();
 include 'config/koneksi.php';
 
@@ -393,4 +392,3 @@ if (isset($_SESSION['pesan_error'])) {
 
 </body>
 </html>
-```

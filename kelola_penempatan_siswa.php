@@ -263,13 +263,13 @@ if (!$hasil) {
 
                 <li class="nav-item">
                     <a href="kelola_siswa.php" class="nav-link">
-                        &#9813; Data Siswa
+                      ♟ Data Siswa
                     </a>
                 </li>
 
                 <li class="nav-item">
                     <a href="kelola_guru.php" class="nav-link">
-                        &#9813; Data Guru
+                     ♟ Data Guru
                     </a>
                 </li>
 
@@ -342,7 +342,7 @@ if (!$hasil) {
                     </p>
                 </div>
 
-                <a href="tambah_penempatan.php"
+                <a href="tambah_penempatan_siswa.php"
                    class="btn btn-primary mt-3 mt-md-0">
                     + Tambah Penempatan Siswa
                 </a>
@@ -412,7 +412,12 @@ if (!$hasil) {
                                     </td>
 
                                     <td>
-                                        <?= e($data['tanggal_selesai']) ?>
+                                        <?php
+                                        $tglSelesai = $data['tanggal_selesai'] ?? '';
+                                        echo in_array($tglSelesai, ['', '0000-00-00', '9999-12-31'], true)
+                                            ? '-'
+                                            : e($tglSelesai);
+                                        ?>
                                     </td>
 
                                     <td>

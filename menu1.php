@@ -1,5 +1,4 @@
-```php
-<?php
+﻿<?php
 session_start();
 require 'koneksi.php';
 
@@ -32,16 +31,18 @@ function e($value)
 ========================= */
 if (isset($_POST['tambah'])) {
     $nis = trim($_POST['nis'] ?? '');
+    $nisn = trim($_POST['nisn'] ?? '');
     $nama = trim($_POST['nama'] ?? '');
     $jenis_kelamin = trim($_POST['jenis_kelamin'] ?? '');
-    $kelas = trim($_POST['kelas'] ?? '');
+    $tanggal_lahir = $_POST['tanggal_lahir'] ?? '';
     $alamat = trim($_POST['alamat'] ?? '');
-    $no_hp = trim($_POST['no_hp'] ?? '');
+    $status_aktif = (int) ($_POST['status_aktif'] ?? 1);
 
-    if ($nis === '' || $nama === '' ||
-        $jenis_kelamin === '' || $kelas === '') {
+    if ($nisn === '' || $nama === '' ||
+        !in_array($jenis_kelamin, ['L', 'P'], true) ||
+        $tanggal_lahir === '' || $alamat === '') {
         echo "<script>
-            alert('NIS, nama, jenis kelamin, dan kelas wajib diisi!');
+            alert('NISN, nama, jenis kelamin, tanggal lahir, dan alamat wajib diisi!');
             window.location='menu1.php';
         </script>";
         exit;
@@ -50,18 +51,19 @@ if (isset($_POST['tambah'])) {
     try {
         $stmt = $pdo->prepare("
             INSERT INTO t_siswa
-                (nis, nama, jenis_kelamin, kelas, alamat, no_hp)
+                (nis, nisn, nama, jenis_kelamin, tanggal_lahir, alamat, status_aktif)
             VALUES
-                (:nis, :nama, :jenis_kelamin, :kelas, :alamat, :no_hp)
+                (:nis, :nisn, :nama, :jenis_kelamin, :tanggal_lahir, :alamat, :status_aktif)
         ");
 
         $stmt->execute([
             ':nis' => $nis,
+            ':nisn' => $nisn,
             ':nama' => $nama,
             ':jenis_kelamin' => $jenis_kelamin,
-            ':kelas' => $kelas,
+            ':tanggal_lahir' => $tanggal_lahir,
             ':alamat' => $alamat,
-            ':no_hp' => $no_hp
+            ':status_aktif' => $status_aktif
         ]);
 
         echo "<script>
@@ -85,14 +87,16 @@ if (isset($_POST['tambah'])) {
 if (isset($_POST['edit'])) {
     $id = (int)($_POST['id'] ?? 0);
     $nis = trim($_POST['nis'] ?? '');
+    $nisn = trim($_POST['nisn'] ?? '');
     $nama = trim($_POST['nama'] ?? '');
     $jenis_kelamin = trim($_POST['jenis_kelamin'] ?? '');
-    $kelas = trim($_POST['kelas'] ?? '');
+    $tanggal_lahir = $_POST['tanggal_lahir'] ?? '';
     $alamat = trim($_POST['alamat'] ?? '');
-    $no_hp = trim($_POST['no_hp'] ?? '');
+    $status_aktif = (int) ($_POST['status_aktif'] ?? 1);
 
-    if ($id <= 0 || $nis === '' || $nama === '' ||
-        $jenis_kelamin === '' || $kelas === '') {
+    if ($id <= 0 || $nisn === '' || $nama === '' ||
+        !in_array($jenis_kelamin, ['L', 'P'], true) ||
+        $tanggal_lahir === '' || $alamat === '') {
         echo "<script>
             alert('Periksa kembali data siswa yang wajib diisi!');
             window.location='menu1.php';
@@ -104,21 +108,24 @@ if (isset($_POST['edit'])) {
         $stmt = $pdo->prepare("
             UPDATE t_siswa
             SET nis = :nis,
+                nisn = :nisn,
                 nama = :nama,
                 jenis_kelamin = :jenis_kelamin,
-                kelas = :kelas,
+                tanggal_lahir = :tanggal_lahir,
                 alamat = :alamat,
-                no_hp = :no_hp
+                status_aktif = :status_aktif,
+                updated_at = NOW()
             WHERE id = :id
         ");
 
         $stmt->execute([
             ':nis' => $nis,
+            ':nisn' => $nisn,
             ':nama' => $nama,
             ':jenis_kelamin' => $jenis_kelamin,
-            ':kelas' => $kelas,
+            ':tanggal_lahir' => $tanggal_lahir,
             ':alamat' => $alamat,
-            ':no_hp' => $no_hp,
+            ':status_aktif' => $status_aktif,
             ':id' => $id
         ]);
 
@@ -198,8 +205,8 @@ if ($cari !== '') {
         SELECT *
         FROM t_siswa
         WHERE nis LIKE :cari
+           OR nisn LIKE :cari
            OR nama LIKE :cari
-           OR kelas LIKE :cari
         ORDER BY id DESC
     ");
 
@@ -219,17 +226,17 @@ $total_siswa = count($data_siswa);
    MENU SIDEBAR
 ========================= */
 $menus = [
-    ['Dashboard', 'dashboard.php', '⌂'],
-    ['Kelola Siswa', 'menu1.php', '♙'],
-    ['Kelola Guru', 'menu2.php', '♧'],
-    ['Jenis Pelanggaran', 'menu3.php', '▤'],
-    ['Admin', 'menu4.php', '⚙'],
-    ['Kelola Kelas', 'kelola_kelas.php', '▦'],
-    ['Tahun Ajaran', 'kelola_tahun_ajaran.php', '▣'],
-    ['Penempatan Siswa', 'penempatan_siwa.php', '⇄'],
-    ['Wali Kelas', 'kelola_wali_kelas.php', '♧'],
-    ['Kategori Pelanggaran', 'kelola_kategori_pelanggaran.php', '▤'],
-    ['Laporan', 'laporan.php', '▧']
+    ['Dashboard', 'dashboard.php', 'âŒ‚'],
+    ['Kelola Siswa', 'menu1.php', 'â™™'],
+    ['Kelola Guru', 'menu2.php', 'â™§'],
+    ['Jenis Pelanggaran', 'menu3.php', 'â–¤'],
+    ['Admin', 'menu4.php', 'âš™'],
+    ['Kelola Kelas', 'kelola_kelas.php', 'â–¦'],
+    ['Tahun Ajaran', 'kelola_tahun_ajaran.php', 'â–£'],
+    ['Penempatan Siswa', 'penempatan_siwa.php', 'â‡„'],
+    ['Wali Kelas', 'kelola_wali_kelas.php', 'â™§'],
+    ['Kategori Pelanggaran', 'kelola_kategori_pelanggaran.php', 'â–¤'],
+    ['Laporan', 'laporan.php', 'â–§']
 ];
 ?>
 <!DOCTYPE html>
@@ -713,7 +720,7 @@ $menus = [
 
     <a class="logout" href="logout.php"
        onclick="return confirm('Yakin ingin keluar dari aplikasi?')">
-        ⇥ &nbsp; Logout
+        â‡¥ &nbsp; Logout
     </a>
 </aside>
 
@@ -743,7 +750,7 @@ $menus = [
             </p>
         </div>
 
-        <div class="stats-icon">♙</div>
+        <div class="stats-icon">â™™</div>
     </section>
 
     <!-- FORM TAMBAH / EDIT -->
@@ -763,13 +770,24 @@ $menus = [
 
             <div class="form-grid">
                 <div class="form-group">
-                    <label for="nis">NIS *</label>
+                    <label for="nis">NIS</label>
                     <input
                         type="text"
                         id="nis"
                         name="nis"
                         placeholder="Contoh: 2026001"
                         value="<?= e($data_edit['nis'] ?? '') ?>"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="nisn">NISN *</label>
+                    <input
+                        type="text"
+                        id="nisn"
+                        name="nisn"
+                        placeholder="Masukkan NISN"
+                        value="<?= e($data_edit['nisn'] ?? '') ?>"
                         required
                     >
                 </div>
@@ -790,13 +808,13 @@ $menus = [
                     <label for="jenis_kelamin">Jenis Kelamin *</label>
                     <select id="jenis_kelamin" name="jenis_kelamin" required>
                         <option value="">-- Pilih Jenis Kelamin --</option>
-                        <option value="Laki-laki"
-                            <?= ($data_edit['jenis_kelamin'] ?? '') === 'Laki-laki'
+                        <option value="L"
+                            <?= ($data_edit['jenis_kelamin'] ?? '') === 'L'
                                 ? 'selected' : '' ?>>
                             Laki-laki
                         </option>
-                        <option value="Perempuan"
-                            <?= ($data_edit['jenis_kelamin'] ?? '') === 'Perempuan'
+                        <option value="P"
+                            <?= ($data_edit['jenis_kelamin'] ?? '') === 'P'
                                 ? 'selected' : '' ?>>
                             Perempuan
                         </option>
@@ -804,35 +822,40 @@ $menus = [
                 </div>
 
                 <div class="form-group">
-                    <label for="kelas">Kelas *</label>
+                    <label for="tanggal_lahir">Tanggal Lahir *</label>
                     <input
-                        type="text"
-                        id="kelas"
-                        name="kelas"
-                        placeholder="Contoh: X RPL 1"
-                        value="<?= e($data_edit['kelas'] ?? '') ?>"
+                        type="date"
+                        id="tanggal_lahir"
+                        name="tanggal_lahir"
+                        value="<?= e($data_edit['tanggal_lahir'] ?? '') ?>"
                         required
                     >
                 </div>
 
+                <div class="form-group">
+                    <label for="status_aktif">Status Siswa *</label>
+                    <select id="status_aktif" name="status_aktif" required>
+                        <option value="1"
+                            <?= (string)($data_edit['status_aktif'] ?? '1') === '1'
+                                ? 'selected' : '' ?>>
+                            Aktif
+                        </option>
+                        <option value="0"
+                            <?= (string)($data_edit['status_aktif'] ?? '1') === '0'
+                                ? 'selected' : '' ?>>
+                            Tidak Aktif
+                        </option>
+                    </select>
+                </div>
+
                 <div class="form-group full-width">
-                    <label for="alamat">Alamat</label>
+                    <label for="alamat">Alamat *</label>
                     <textarea
                         id="alamat"
                         name="alamat"
                         placeholder="Masukkan alamat siswa"
+                        required
                     ><?= e($data_edit['alamat'] ?? '') ?></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label for="no_hp">No. HP</label>
-                    <input
-                        type="text"
-                        id="no_hp"
-                        name="no_hp"
-                        placeholder="Contoh: 08123456789"
-                        value="<?= e($data_edit['no_hp'] ?? '') ?>"
-                    >
                 </div>
             </div>
 
@@ -872,7 +895,7 @@ $menus = [
                 class="search-input"
                 type="text"
                 name="cari"
-                placeholder="Cari NIS, nama, atau kelas..."
+                placeholder="Cari NIS, NISN, atau nama..."
                 value="<?= e($cari) ?>"
             >
 
@@ -894,11 +917,12 @@ $menus = [
                         <th>No.</th>
                         <th>ID</th>
                         <th>NIS</th>
+                        <th>NISN</th>
                         <th>Nama Siswa</th>
                         <th>Jenis Kelamin</th>
-                        <th>Kelas</th>
+                        <th>Tanggal Lahir</th>
                         <th>Alamat</th>
-                        <th>No. HP</th>
+                        <th>Status</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -912,15 +936,16 @@ $menus = [
                                 <td><?= $no++ ?></td>
                                 <td><?= e($row['id'] ?? '') ?></td>
                                 <td><?= e($row['nis'] ?? '') ?></td>
+                                <td><?= e($row['nisn'] ?? '') ?></td>
                                 <td><strong><?= e($row['nama'] ?? '') ?></strong></td>
                                 <td>
                                     <span class="badge-gender">
-                                        <?= e($row['jenis_kelamin'] ?? '') ?>
+                                        <?= ($row['jenis_kelamin'] ?? '') === 'L' ? 'Laki-laki' : (($row['jenis_kelamin'] ?? '') === 'P' ? 'Perempuan' : '-') ?>
                                     </span>
                                 </td>
-                                <td><?= e($row['kelas'] ?? '') ?></td>
+                                <td><?= e($row['tanggal_lahir'] ?? '') ?></td>
                                 <td><?= e($row['alamat'] ?? '') ?></td>
-                                <td><?= e($row['no_hp'] ?? '') ?></td>
+                                <td><?= (int)($row['status_aktif'] ?? 0) === 1 ? 'Aktif' : 'Tidak Aktif' ?></td>
                                 <td>
                                     <a class="btn btn-edit"
                                        href="menu1.php?edit=<?= (int)$row['id'] ?>">
@@ -938,7 +963,7 @@ $menus = [
 
                     <?php else: ?>
                         <tr>
-                            <td colspan="9" class="empty">
+                            <td colspan="10" class="empty">
                                 <?php if ($cari !== ''): ?>
                                     Data siswa tidak ditemukan untuk pencarian
                                     "<?= e($cari) ?>".
@@ -962,4 +987,3 @@ $menus = [
 
 </body>
 </html>
-```
