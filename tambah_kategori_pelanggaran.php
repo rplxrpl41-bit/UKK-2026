@@ -94,11 +94,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
 
+  
     <style>
-        * {
-            box-sizing: border-box;
-        }
-
         body {
             margin: 0;
             background: #f4f6f9;
@@ -106,73 +103,78 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: #1e293b;
         }
 
+        /* SIDEBAR */
         .sidebar {
-            width: 250px;
-            min-height: 100vh;
             background: #172554;
             color: white;
-            padding: 24px 15px;
-            position: fixed;
-            top: 0;
-            left: 0;
+            min-height: 100vh;
+            padding: 22px 15px;
         }
 
-        .sidebar h4 {
-            text-align: center;
+        .sidebar-title {
+            font-size: 20px;
             font-weight: bold;
             margin-bottom: 30px;
+            padding: 0 10px;
+            line-height: 1.5;
         }
 
         .sidebar .nav-link {
-            color: #dbeafe;
-            padding: 11px 13px;
-            margin-bottom: 5px;
-            border-radius: 7px;
-            font-size: 14px;
+            color: #e2e8f0;
+            padding: 12px 14px;
+            margin-bottom: 6px;
+            border-radius: 6px;
+            transition: 0.2s;
         }
 
-        .sidebar .nav-link:hover,
+        .sidebar .nav-link:hover {
+            background: #263b70;
+            color: white;
+        }
+
         .sidebar .nav-link.active {
             background: #3157d5;
             color: white;
         }
 
-        .content {
-            margin-left: 250px;
-            padding: 30px;
+        .sidebar .nav-link.logout {
+            color: #fca5a5;
+        }
+
+        .sidebar hr {
+            border-color: #64748b;
+        }
+
+        /* KONTEN */
+        .main-content {
+            padding: 28px;
         }
 
         .page-title {
+            color: #172554;
+            font-size: 28px;
             font-weight: bold;
-            font-size: 25px;
-            margin-bottom: 5px;
+            margin-bottom: 6px;
         }
 
-        .page-subtitle {
+        .page-description {
             color: #64748b;
             margin-bottom: 25px;
         }
 
-        .form-card {
+        /* KARTU */
+        .content-card {
             background: white;
-            padding: 28px;
             border-radius: 12px;
+            padding: 24px;
             box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
-            max-width: 850px;
         }
 
-        .form-group label {
-            font-weight: 600;
-            color: #334155;
-        }
-
-        .form-control {
-            min-height: 43px;
-            border-radius: 7px;
-        }
-
-        textarea.form-control {
-            min-height: 120px;
+        .section-title {
+            color: #172554;
+            font-size: 19px;
+            font-weight: bold;
+            margin-bottom: 5px;
         }
 
         .btn-primary {
@@ -181,79 +183,131 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .btn-primary:hover {
-            background: #2445b5;
-            border-color: #2445b5;
+            background: #2546b8;
+            border-color: #2546b8;
         }
 
-        .required {
-            color: #dc2626;
+        /* TABEL */
+        #tabelKategori thead th {
+            background: #172554;
+            color: white;
+            vertical-align: middle;
+            white-space: nowrap;
         }
 
-        @media (max-width: 768px) {
+        #tabelKategori tbody td {
+            vertical-align: middle;
+        }
+
+        .table-responsive {
+            margin-top: 20px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 11px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status-aktif {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-nonaktif {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .footer-text {
+            color: #94a3b8;
+            font-size: 13px;
+            margin-top: 25px;
+        }
+
+        @media (max-width: 767px) {
             .sidebar {
-                position: relative;
-                width: 100%;
                 min-height: auto;
             }
 
-            .content {
-                margin-left: 0;
+            .main-content {
                 padding: 18px;
             }
 
-            .form-card {
-                padding: 20px;
+            .content-card {
+                padding: 15px;
+            }
+
+            .page-title {
+                font-size: 24px;
             }
         }
     </style>
 </head>
+
 <body>
 
-<aside class="sidebar">
-    <h4>My Website</h4>
+<div class="container-fluid">
+    <div class="row">
 
-    <ul class="nav nav-pills flex-column">
-        <li class="nav-item">
-            <a class="nav-link" href="dashboard.php">âŒ‚ Dashboard</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="kelola_siswa.php">â™Ÿ Data Siswa</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="kelola_guru.php">â™Ÿ Data Guru</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="kelola_kelas.php">â–¦ Data Kelas</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="kelola_tahun_ajaran.php">â—· Kelola Tahun Ajaran</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="kelola_wali_kelas.php">â™™ Kelola Wali Kelas</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="kelola_penempatan_siswa.php">â‡„ Penempatan Siswa</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link active" href="kelola_kategori_pelanggaran.php">
-                â˜· Kategori Pelanggaran
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="tentang_saya.php">About Me</a>
-        </li>
+        <!-- SIDEBAR -->
+        <aside class="col-md-3 col-lg-2 sidebar">
 
-        <hr style="border-color: #475569;">
+            <div class="sidebar-title">
+                Sistem Pelanggaran
+            </div>
 
-        <li class="nav-item">
-            <a class="nav-link"
-               href="logout.php"
-               onclick="return confirm('Yakin ingin logout?')">
-                â‡¥ Logout
-            </a>
-        </li>
-    </ul>
-</aside>
+            <nav class="nav flex-column">
+
+                <a href="dashboard.php" class="nav-link">
+                    ⌂ Dashboard
+                </a>
+
+                <a href="kelola_siswa.php" class="nav-link">
+                    ♟ Data Siswa
+                </a>
+
+                <a href="kelola_guru.php" class="nav-link">
+                    ♟ Data Guru
+                </a>
+
+                <a href="kelola_kelas.php" class="nav-link">
+                    ▦ Data Kelas
+                </a>
+
+                <a href="kelola_tahun_ajaran.php" class="nav-link">
+                    ◷ Kelola Tahun Ajaran
+                </a>
+
+                <a href="kelola_wali_kelas.php" class="nav-link">
+                    ♙ Kelola Wali Kelas
+                </a>
+
+                <a href="kelola_penempatan_siswa.php" class="nav-link">
+                    ⇄ Penempatan Siswa
+                </a>
+
+                <a href="kelola_kategori_pelanggaran.php"
+                   class="nav-link active">
+                    ☷ Kategori Pelanggaran
+                </a>
+
+                <a href="tentang_saya.php" class="nav-link">
+                    ℹ About Me
+                </a>
+
+                <hr>
+
+                <a href="logout.php"
+                   class="nav-link logout"
+                   onclick="return confirm('Yakin ingin logout?')">
+                    ⇥ Logout
+                </a>
+
+            </nav>
+        </aside>
 
 <main class="content">
     <h1 class="page-title">Tambah Kategori Pelanggaran</h1>

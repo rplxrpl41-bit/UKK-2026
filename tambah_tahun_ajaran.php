@@ -87,37 +87,35 @@ function e($nilai)
         href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
     >
 
-    <style>
-        * {
-            box-sizing: border-box;
-        }
-
+   <style>
         body {
             margin: 0;
-            font-family: Arial, sans-serif;
             background: #f4f6f9;
+            font-family: Arial, sans-serif;
             color: #1e293b;
         }
 
+        /* SIDEBAR */
         .sidebar {
-            min-height: 100vh;
             background: #172554;
+            color: white;
+            min-height: 100vh;
             padding: 22px 15px;
         }
 
-        .sidebar h4 {
-            color: white;
+        .sidebar-title {
+            font-size: 20px;
             font-weight: bold;
-            margin-bottom: 28px;
-            padding-left: 10px;
+            margin-bottom: 30px;
+            padding: 0 10px;
+            line-height: 1.5;
         }
 
         .sidebar .nav-link {
-            color: #dbeafe;
-            padding: 11px 12px;
-            margin-bottom: 5px;
-            border-radius: 7px;
-            font-size: 14px;
+            color: #e2e8f0;
+            padding: 12px 14px;
+            margin-bottom: 6px;
+            border-radius: 6px;
             transition: 0.2s;
         }
 
@@ -129,103 +127,96 @@ function e($nilai)
         .sidebar .nav-link.active {
             background: #3157d5;
             color: white;
-            font-weight: bold;
         }
 
-        .sidebar .logout {
-            color: #fecaca;
+        .sidebar .nav-link.logout {
+            color: #fca5a5;
         }
 
-        .content {
+        .sidebar hr {
+            border-color: #64748b;
+        }
+
+        /* KONTEN */
+        .main-content {
             padding: 28px;
         }
 
         .page-title {
-            font-size: 26px;
-            font-weight: bold;
             color: #172554;
-            margin-bottom: 5px;
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 6px;
         }
 
         .page-description {
             color: #64748b;
-            font-size: 14px;
             margin-bottom: 25px;
         }
 
-        .form-card {
+        /* KARTU TABEL */
+        .content-card {
             background: white;
             border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 3px 12px rgba(15, 23, 42, 0.06);
-            border: 1px solid #e2e8f0;
+            padding: 24px;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
         }
 
-        .form-card h5 {
+        .section-title {
             color: #172554;
+            font-size: 19px;
             font-weight: bold;
-            margin-bottom: 7px;
-        }
-
-        .form-card .subtitle {
-            color: #64748b;
-            font-size: 13px;
-            margin-bottom: 25px;
-        }
-
-        label {
-            color: #334155;
-            font-size: 14px;
-            font-weight: bold;
-        }
-
-        .form-control {
-            height: 43px;
-            border: 1px solid #cbd5e1;
-            border-radius: 7px;
-            font-size: 14px;
-        }
-
-        .form-control:focus {
-            border-color: #3157d5;
-            box-shadow: 0 0 0 0.15rem rgba(49, 87, 213, 0.15);
+            margin-bottom: 5px;
         }
 
         .btn-primary {
             background: #3157d5;
             border-color: #3157d5;
-            border-radius: 7px;
-            padding: 10px 20px;
-            font-size: 14px;
-            font-weight: bold;
         }
 
         .btn-primary:hover {
-            background: #2445b5;
-            border-color: #2445b5;
+            background: #2546b8;
+            border-color: #2546b8;
         }
 
-        .btn-secondary {
-            border-radius: 7px;
-            padding: 10px 20px;
-            font-size: 14px;
+        /* TABEL */
+        #tabelTahunAjaran thead th {
+            background: #172554;
+            color: white;
+            vertical-align: middle;
+            white-space: nowrap;
         }
 
-        .form-actions {
-            border-top: 1px solid #e2e8f0;
-            padding-top: 20px;
-            margin-top: 25px;
+        #tabelTahunAjaran tbody td {
+            vertical-align: middle;
         }
 
-        .required {
-            color: #dc2626;
+        .table-responsive {
+            margin-top: 20px;
         }
 
-        footer {
-            color: #94a3b8;
+        .status-badge {
+            display: inline-block;
+            padding: 6px 11px;
+            border-radius: 20px;
             font-size: 12px;
-            text-align: center;
-            margin-top: 30px;
+            font-weight: bold;
+        }
+
+        .status-aktif {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-nonaktif {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .footer-text {
+            color: #94a3b8;
+            font-size: 13px;
+            margin-top: 25px;
         }
 
         @media (max-width: 767px) {
@@ -233,12 +224,16 @@ function e($nilai)
                 min-height: auto;
             }
 
-            .content {
-                padding: 20px 15px;
+            .main-content {
+                padding: 18px;
             }
 
-            .form-card {
-                padding: 18px;
+            .content-card {
+                padding: 15px;
+            }
+
+            .page-title {
+                font-size: 24px;
             }
         }
     </style>
@@ -249,80 +244,60 @@ function e($nilai)
 <div class="container-fluid">
     <div class="row">
 
-        <!-- SIDEBAR SAMA SEPERTI HALAMAN SEBELUMNYA -->
+        <!-- SIDEBAR -->
         <aside class="col-md-3 col-lg-2 sidebar">
 
-            <h4>My Website</h4>
+            <div class="sidebar-title">
+                Sistem Pelanggaran
+            </div>
 
-            <ul class="nav nav-pills flex-column">
+            <nav class="nav flex-column">
 
-                <li>
-                    <a href="dashboard.php" class="nav-link">
-                        &#8962; Dashboard
-                    </a>
-                </li>
+                <a href="dashboard.php" class="nav-link">
+                    ⌂ Dashboard
+                </a>
 
-                <li>
-                    <a href="kelola_siswa.php" class="nav-link">
-                        &#9813; Data Siswa
-                    </a>
-                </li>
+                <a href="kelola_siswa.php" class="nav-link">
+                    ♟ Data Siswa
+                </a>
 
-                <li>
-                    <a href="kelola_guru.php" class="nav-link">
-                        &#9813; Data Guru
-                    </a>
-                </li>
+                <a href="kelola_guru.php" class="nav-link">
+                    ♟ Data Guru
+                </a>
 
-                <li>
-                    <a href="kelola_kelas.php" class="nav-link">
-                        &#9638; Data Kelas
-                    </a>
-                </li>
+                <a href="kelola_kelas.php" class="nav-link">
+                    ▦ Data Kelas
+                </a>
 
-                <li>
-                    <a href="kelola_tahun_ajaran.php" class="nav-link active">
-                        &#9719; Kelola Tahun Ajaran
-                    </a>
-                </li>
+                <a href="kelola_tahun_ajaran.php" class="nav-link active">
+                    ◷ Kelola Tahun Ajaran
+                </a>
 
-                <li>
-                    <a href="kelola_wali_kelas.php" class="nav-link">
-                        &#9817; Kelola Wali Kelas
-                    </a>
-                </li>
+                <a href="kelola_wali_kelas.php" class="nav-link">
+                    ♙ Kelola Wali Kelas
+                </a>
 
-                <li>
-                    <a href="kelola_penempatan_siswa.php" class="nav-link">
-                        &#8644; Penempatan Siswa
-                    </a>
-                </li>
+                <a href="kelola_penempatan_siswa.php" class="nav-link">
+                    ⇄ Penempatan Siswa
+                </a>
 
-                <li>
-                    <a href="kelola_kategori_pelanggaran.php" class="nav-link">
-                        &#9776; Kategori Pelanggaran
-                    </a>
-                </li>
+                <a href="kelola_kategori_pelanggaran.php" class="nav-link">
+                    ☷ Kategori Pelanggaran
+                </a>
 
-                <li>
-                    <a href="tentang_saya.php" class="nav-link">
-                        &#8505; About Me
-                    </a>
-                </li>
+                <a href="tentang_saya.php" class="nav-link">
+                    ℹ About Me
+                </a>
 
-                <hr style="border-color: #475569;">
+                <hr>
 
-                <li>
-                    <a
-                        href="logout.php"
-                        class="nav-link logout"
-                        onclick="return confirm('Yakin ingin logout?')"
-                    >
-                        &#10140; Logout
-                    </a>
-                </li>
+                <a href="logout.php"
+                   class="nav-link logout"
+                   onclick="return confirm('Yakin ingin logout?')">
+                    ⇥ Logout
+                </a>
 
-            </ul>
+            </nav>
         </aside>
 
         <!-- KONTEN UTAMA -->

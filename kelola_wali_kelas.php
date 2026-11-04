@@ -1,6 +1,7 @@
 
 <?php
 session_start();
+
 include 'config/koneksi.php';
 
 // Periksa login
@@ -15,27 +16,36 @@ if (($_SESSION['role'] ?? '') !== 'admin') {
     exit("Akses ditolak! Halaman ini hanya untuk admin.");
 }
 
-// Ambil data guru yang terhubung dengan akun ber-role guru
+// Ambil data wali kelas
 $sql = "SELECT
-            g.id,
-            g.nip,
-            g.nama,
-            g.email,
-            g.status_aktif,
-            g.created_at,
-            g.updated_at
-        FROM t_guru g
-        JOIN t_users u ON g.user_id = u.id
-        WHERE u.role = 'guru'
-        ORDER BY g.id DESC";
+            w.id,
+            w.tahun_ajaran_id,
+            w.kelas_id,
+            w.guru_id,
+            w.tanggal_mulai,
+            w.tanggal_selesai,
+            w.status_aktif,
+            w.created_at,
+            w.updated_at,
+            g.nama AS nama_guru,
+            g.nip AS nip_guru,
+            k.nama AS nama_kelas,
+            k.tingkat,
+            k.jurusan,
+            ta.nama AS tahun_ajaran
+        FROM t_wali_kelas w
+        LEFT JOIN t_guru g ON w.guru_id = g.id
+        LEFT JOIN t_kelas k ON w.kelas_id = k.id
+        LEFT JOIN t_tahun_ajaran ta ON w.tahun_ajaran_id = ta.id
+        ORDER BY w.id DESC";
 
 $hasil = mysqli_query($koneksi, $sql);
 
 if (!$hasil) {
-    die("Gagal mengambil data guru: " . mysqli_error($koneksi));
+    die("Gagal mengambil data wali kelas: " . mysqli_error($koneksi));
 }
 
-// Fungsi untuk mengamankan output
+// Fungsi keamanan output
 function e($nilai)
 {
     return htmlspecialchars(
@@ -43,6 +53,19 @@ function e($nilai)
         ENT_QUOTES,
         'UTF-8'
     );
+}
+
+// Format tanggal
+function formatTanggal($tanggal)
+{
+    if (
+        empty($tanggal) ||
+        $tanggal === '0000-00-00'
+    ) {
+        return '-';
+    }
+
+    return date('d-m-Y', strtotime($tanggal));
 }
 ?>
 
@@ -53,7 +76,7 @@ function e($nilai)
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>Kelola Guru</title>
+    <title>Kelola Wali Kelas</title>
 
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
@@ -156,14 +179,14 @@ function e($nilai)
         }
 
         /* TABEL */
-        #tabelGuru thead th {
+        #tabelWaliKelas thead th {
             background: #172554;
             color: white;
             vertical-align: middle;
             white-space: nowrap;
         }
 
-        #tabelGuru tbody td {
+        #tabelWaliKelas tbody td {
             vertical-align: middle;
         }
 
@@ -171,6 +194,7 @@ function e($nilai)
             margin-top: 20px;
         }
 
+        /* STATUS */
         .status-badge {
             display: inline-block;
             padding: 6px 11px;
@@ -237,7 +261,7 @@ function e($nilai)
                     ♟ Data Siswa
                 </a>
 
-                <a href="kelola_guru.php" class="nav-link ">
+                <a href="kelola_guru.php" class="nav-link">
                     ♟ Data Guru
                 </a>
 
@@ -279,30 +303,32 @@ function e($nilai)
         <!-- KONTEN UTAMA -->
         <main class="col-md-9 col-lg-10 main-content">
 
-            <h1 class="page-title">Kelola Guru</h1>
+            <h1 class="page-title">
+                Kelola Wali Kelas
+            </h1>
 
             <p class="page-description">
-                Kelola dan lihat data guru yang terdaftar di sistem sekolah.
+                Kelola dan lihat data guru yang bertugas sebagai wali kelas.
             </p>
 
-            <!-- KARTU DATA GURU -->
+            <!-- KARTU DATA -->
             <div class="content-card">
 
                 <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
 
                     <div>
                         <h5 class="section-title">
-                            Data Guru
+                            Data Wali Kelas
                         </h5>
 
                         <small class="text-muted">
-                            Daftar guru sekolah
+                            Daftar wali kelas sekolah
                         </small>
                     </div>
 
-                    <a href="tambah_guru.php"
+                    <a href="tambah_wali_kelas.php"
                        class="btn btn-primary">
-                        + Tambah Guru
+                        + Tambah Wali Kelas
                     </a>
 
                 </div>
@@ -310,80 +336,101 @@ function e($nilai)
                 <!-- TABEL -->
                 <div class="table-responsive">
 
-                    <table id="tabelGuru"
+                    <table id="tabelWaliKelas"
                            class="table table-bordered table-striped table-hover"
                            style="width:100%">
 
                         <thead>
                             <tr>
                                 <th>No</th>
-                                <th>NIP</th>
                                 <th>Nama Guru</th>
-                                <th>Email</th>
+                                <th>NIP</th>
+                                <th>Kelas</th>
+                                <th>Tahun Ajaran</th>
+                                <th>Tanggal Mulai</th>
+                                <th>Tanggal Selesai</th>
                                 <th>Status</th>
-                                <th>Created At</th>
-                                <th>Updated At</th>
                                 <th>Aksi</th>
                             </tr>
                         </thead>
 
                         <tbody>
+
                             <?php
                             $no = 1;
 
-                            while ($guru = mysqli_fetch_assoc($hasil)) :
+                            while ($wali = mysqli_fetch_assoc($hasil)) :
                             ?>
+
                                 <tr>
-                                    <td><?= $no++; ?></td>
 
                                     <td>
-                                        <?= e($guru['nip'] ?? '-'); ?>
+                                        <?= $no++; ?>
                                     </td>
 
                                     <td>
-                                        <?= e($guru['nama'] ?? '-'); ?>
+                                        <?= e($wali['nama_guru'] ?? '-'); ?>
                                     </td>
 
                                     <td>
-                                        <?= e($guru['email'] ?? '-'); ?>
+                                        <?= e($wali['nip_guru'] ?? '-'); ?>
                                     </td>
 
                                     <td>
-                                        <?php if ((int)($guru['status_aktif'] ?? 0) === 1) : ?>
+                                        <?= e($wali['nama_kelas'] ?? '-'); ?>
+                                    </td>
+
+                                    <td>
+                                        <?= e($wali['tahun_ajaran'] ?? '-'); ?>
+                                    </td>
+
+                                    <td>
+                                        <?= e(formatTanggal($wali['tanggal_mulai'])); ?>
+                                    </td>
+
+                                    <td>
+                                        <?= e(formatTanggal($wali['tanggal_selesai'])); ?>
+                                    </td>
+
+                                    <td>
+
+                                        <?php if ((int)$wali['status_aktif'] === 1) : ?>
+
                                             <span class="status-badge status-aktif">
                                                 Aktif
                                             </span>
+
                                         <?php else : ?>
+
                                             <span class="status-badge status-nonaktif">
                                                 Tidak Aktif
                                             </span>
+
                                         <?php endif; ?>
-                                    </td>
 
-                                    <td>
-                                        <?= e($guru['created_at'] ?? '-'); ?>
-                                    </td>
-
-                                    <td>
-                                        <?= e($guru['updated_at'] ?? '-'); ?>
                                     </td>
 
                                     <td>
                                         <div class="d-flex gap-1">
-                                            <a href="edit_guru.php?id=<?= (int)$guru['id']; ?>"
+
+                                            <a href="edit_wali_kelas.php?id=<?= (int)$wali['id']; ?>"
                                                class="btn btn-warning btn-sm">
                                                 Edit
                                             </a>
 
-                                            <a href="hapus_guru.php?id=<?= (int)$guru['id']; ?>"
+                                            <a href="hapus_wali_kelas.php?id=<?= (int)$wali['id']; ?>"
                                                class="btn btn-danger btn-sm"
-                                               onclick="return confirm('Yakin ingin menghapus guru ini?')">
+                                               onclick="return confirm('Yakin ingin menghapus data wali kelas ini?')">
                                                 Hapus
                                             </a>
+
                                         </div>
                                     </td>
+
                                 </tr>
+
                             <?php endwhile; ?>
+
                         </tbody>
 
                     </table>
@@ -402,6 +449,7 @@ function e($nilai)
 </div>
 
 <!-- JAVASCRIPT -->
+
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
@@ -412,35 +460,50 @@ function e($nilai)
 
 <script>
     $(document).ready(function () {
-        $('#tabelGuru').DataTable({
+
+        $('#tabelWaliKelas').DataTable({
+
             pageLength: 10,
+
             lengthMenu: [10, 25, 50, 100],
+
             order: [[0, 'asc']],
+
             scrollX: true,
 
             language: {
+
                 search: 'Cari:',
+
                 lengthMenu: 'Tampilkan _MENU_ data',
+
                 info: 'Menampilkan _START_ sampai _END_ dari _TOTAL_ data',
-                infoEmpty: 'Tidak ada data guru',
-                zeroRecords: 'Data guru tidak ditemukan',
-                emptyTable: 'Belum ada data guru',
+
+                infoEmpty: 'Tidak ada data wali kelas',
+
+                zeroRecords: 'Data wali kelas tidak ditemukan',
+
+                emptyTable: 'Belum ada data wali kelas',
+
                 paginate: {
                     first: 'Pertama',
                     last: 'Terakhir',
                     next: 'Berikutnya',
                     previous: 'Sebelumnya'
                 }
+
             },
 
             columnDefs: [
                 {
-                    targets: 7,
+                    targets: 8,
                     orderable: false,
                     searchable: false
                 }
             ]
+
         });
+
     });
 </script>
 

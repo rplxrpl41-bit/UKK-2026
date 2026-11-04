@@ -44,6 +44,7 @@ if (!$guru) {
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
 
+  
     <style>
         body {
             background: #f4f6f9;
@@ -51,6 +52,7 @@ if (!$guru) {
             margin: 0;
         }
 
+        /* SIDEBAR SAMA SEPERTI KELOLA SISWA */
         .sidebar {
             background: #172554;
             color: white;
@@ -85,6 +87,7 @@ if (!$guru) {
             color: #fca5a5;
         }
 
+        /* KONTEN */
         .content {
             padding: 28px;
         }
@@ -102,36 +105,26 @@ if (!$guru) {
             box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
         }
 
-        .card-main .card-header {
+        /* TABEL */
+        .table thead th {
             background: #172554;
             color: white;
-            border-radius: 12px 12px 0 0;
-            padding: 18px 22px;
-            font-weight: bold;
+            white-space: nowrap;
+            vertical-align: middle;
         }
 
-        label {
-            color: #172554;
-            font-weight: 600;
-            margin-bottom: 7px;
+        .table td {
+            vertical-align: middle;
         }
 
-        .form-control {
-            border: 1px solid #ced4da;
-            border-radius: 6px;
-            padding: 10px 12px;
-            height: auto;
+        .table-responsive {
+            overflow-x: auto;
         }
 
-        .form-control:focus {
-            border-color: #3157d5;
-            box-shadow: 0 0 0 0.2rem rgba(49, 87, 213, 0.15);
-        }
-
+        /* TOMBOL */
         .btn-primary {
             background: #3157d5;
             border-color: #3157d5;
-            border-radius: 6px;
         }
 
         .btn-primary:hover {
@@ -139,23 +132,54 @@ if (!$guru) {
             border-color: #2445b8;
         }
 
-        .btn-secondary {
-            border-radius: 6px;
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+            white-space: nowrap;
         }
 
-        .form-group {
-            margin-bottom: 20px;
+        /* STATUS */
+        .badge-status {
+            padding: 7px 10px;
+            border-radius: 5px;
+            display: inline-block;
+            font-size: 12px;
         }
 
-        .section-title {
-            color: #172554;
-            font-weight: bold;
-            margin-bottom: 18px;
+        .status-aktif {
+            background: #d1fae5;
+            color: #065f46;
         }
 
-        .footer {
+        .status-nonaktif {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* DATATABLES */
+        .dataTables_wrapper {
+            padding-top: 8px;
+        }
+
+        .dataTables_filter input,
+        .dataTables_length select {
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            padding: 5px 8px;
+        }
+
+        .dataTables_info {
             color: #64748b;
             font-size: 13px;
+        }
+
+        .page-item.active .page-link {
+            background: #3157d5;
+            border-color: #3157d5;
+        }
+
+        .page-link {
+            color: #3157d5;
         }
 
         @media (max-width: 767px) {
@@ -177,7 +201,8 @@ if (!$guru) {
 
         <!-- SIDEBAR -->
         <aside class="col-md-3 col-lg-2 sidebar">
-            <h4>Sistem Pelanggaran</h4>
+
+            <h4>My Website</h4>
 
             <ul class="nav nav-pills flex-column">
 
@@ -189,19 +214,19 @@ if (!$guru) {
 
                 <li class="nav-item">
                     <a href="kelola_siswa.php" class="nav-link">
-                        â™Ÿ Data Siswa
+                       ♟ Data Siswa
                     </a>
                 </li>
 
                 <li class="nav-item">
                     <a href="kelola_guru.php" class="nav-link active">
-                        â™Ÿ Data Guru
+                     ♟ Data Guru
                     </a>
                 </li>
 
                 <li class="nav-item">
                     <a href="kelola_kelas.php" class="nav-link">
-                        â–¦ Data Kelas
+                        &#9638; Data Kelas
                     </a>
                 </li>
 
@@ -238,7 +263,8 @@ if (!$guru) {
                 <hr style="border-color: #475569;">
 
                 <li class="nav-item">
-                    <a href="logout.php" class="nav-link logout"
+                    <a href="logout.php"
+                       class="nav-link logout"
                        onclick="return confirm('Yakin ingin logout?')">
                         &#10140; Logout
                     </a>

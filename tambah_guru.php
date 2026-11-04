@@ -1,5 +1,6 @@
-
 <?php
+session_start();
+
 include 'includes/cek_session.php';
 include 'config/koneksi.php';
 
@@ -8,54 +9,77 @@ if (($_SESSION['role'] ?? '') !== 'admin') {
     die('Akses ditolak!');
 }
 
-$pesan = '';
-$tipe_pesan = 'danger';
+$error = '';
 
-// Ambil akun yang dapat dihubungkan dengan data guru
+$nip = '';
+$nama = '';
+$email = '';
+$user_id = '';
+$status_aktif = '1';
+
+// Ambil akun guru
 $users = mysqli_query(
     $koneksi,
     "SELECT id, name, email, role
      FROM t_users
+     WHERE role = 'guru'
      ORDER BY name ASC"
 );
 
 if (!$users) {
-    die('Gagal mengambil akun: ' . mysqli_error($koneksi));
+    die('Gagal mengambil akun pengguna.');
 }
 
+// Proses simpan data
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nip = trim($_POST['nip'] ?? '');
     $nama = trim($_POST['nama'] ?? '');
     $email = trim($_POST['email'] ?? '');
-    $status = isset($_POST['status_aktif'])
-        ? (int) $_POST['status_aktif'] : -1;
     $user_id = (int) ($_POST['user_id'] ?? 0);
+    $status_aktif = (string) ($_POST['status_aktif'] ?? '1');
 
     if ($nip === '' || $nama === '' || $email === '') {
-        $pesan = 'NIP, nama, dan email wajib diisi.';
+        $error = 'NIP, nama, dan email wajib diisi.';
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $pesan = 'Format email tidak valid.';
-    } elseif (!in_array($status, [0, 1], true)) {
-        $pesan = 'Status guru tidak valid.';
+        $error = 'Format email tidak valid.';
+    } elseif (!in_array($status_aktif, ['0', '1'], true)) {
+        $error = 'Status guru tidak valid.';
     } elseif ($user_id <= 0) {
-        $pesan = 'Silakan pilih akun pengguna.';
+        $error = 'Silakan pilih akun pengguna.';
     } else {
-        // Pastikan akun pengguna benar-benar tersedia
+        // Periksa akun pengguna
         $cek_user = mysqli_prepare(
             $koneksi,
-            "SELECT id FROM t_users WHERE id = ?"
+            "SELECT id FROM t_users
+             WHERE id = ? AND role = 'guru'
+             LIMIT 1"
         );
 
-        mysqli_stmt_bind_param($cek_user, 'i', $user_id);
-        mysqli_stmt_execute($cek_user);
-        mysqli_stmt_store_result($cek_user);
-
-        $user_ada = mysqli_stmt_num_rows($cek_user) > 0;
-        mysqli_stmt_close($cek_user);
-
-        if (!$user_ada) {
-            $pesan = 'Akun pengguna tidak ditemukan.';
+        if (!$cek_user) {
+            $error = 'Gagal memeriksa akun pengguna.';
         } else {
+            mysqli_stmt_bind_param(
+                $cek_user,
+                'i',
+                $user_id
+            );
+
+            mysqli_stmt_execute($cek_user);
+            mysqli_stmt_store_result($cek_user);
+
+            $user_ada = mysqli_stmt_num_rows($cek_user) > 0;
+
+            mysqli_stmt_close($cek_user);
+
+            if (!$user_ada) {
+                $error = 'Akun guru tidak ditemukan.';
+            }
+        }
+
+        // Simpan data guru
+        if ($error === '') {
+            $status = (int) $status_aktif;
+
             $stmt = mysqli_prepare(
                 $koneksi,
                 "INSERT INTO t_guru
@@ -64,8 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             );
 
             if (!$stmt) {
-                $pesan = 'Gagal menyiapkan query: '
-                    . mysqli_error($koneksi);
+                $error = 'Gagal menyiapkan query.';
             } else {
                 mysqli_stmt_bind_param(
                     $stmt,
@@ -79,15 +102,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 if (mysqli_stmt_execute($stmt)) {
                     mysqli_stmt_close($stmt);
-                    header('Location: kelola_guru.php?pesan=sukses');
-                    exit;
-                }
 
-                if (mysqli_stmt_errno($stmt) === 1062) {
-                    $pesan = 'NIP, email, atau akun guru sudah digunakan.';
+                    header(
+                        'Location: kelola_guru.php?pesan=sukses'
+                    );
+                    exit;
                 } else {
-                    $pesan = 'Gagal menyimpan data: '
-                        . mysqli_stmt_error($stmt);
+                    if (mysqli_stmt_errno($stmt) === 1062) {
+                        $error = 'NIP, email, atau akun guru sudah digunakan.';
+                    } else {
+                        $error = 'Gagal menyimpan data guru.';
+                    }
                 }
 
                 mysqli_stmt_close($stmt);
@@ -95,219 +120,457 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
+
+// Fungsi keamanan output
+function e($nilai)
+{
+    return htmlspecialchars(
+        (string) $nilai,
+        ENT_QUOTES,
+        'UTF-8'
+    );
+}
 ?>
 
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Tambah Guru</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
-          rel="stylesheet">
+    <title>Tambah Guru - My Website</title>
+
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+    >
+
+    <style>
+        body {
+            background: #f4f6f9;
+            font-family: Arial, sans-serif;
+            margin: 0;
+        }
+
+        /* SIDEBAR SAMA SEPERTI KELOLA SISWA */
+        .sidebar {
+            background: #172554;
+            color: white;
+            min-height: 100vh;
+            padding: 22px 15px;
+        }
+
+        .sidebar h4 {
+            font-weight: bold;
+            margin-bottom: 30px;
+        }
+
+        .sidebar .nav-link {
+            color: #e2e8f0;
+            padding: 12px 14px;
+            margin-bottom: 6px;
+            border-radius: 6px;
+            transition: 0.2s;
+        }
+
+        .sidebar .nav-link:hover {
+            background: #263b70;
+            color: white;
+        }
+
+        .sidebar .nav-link.active {
+            background: #3157d5;
+            color: white;
+        }
+
+        .sidebar .logout {
+            color: #fca5a5;
+        }
+
+        /* KONTEN */
+        .content {
+            padding: 28px;
+        }
+
+        .page-title {
+            color: #172554;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .card-main {
+            background: white;
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
+        }
+
+        /* TABEL */
+        .table thead th {
+            background: #172554;
+            color: white;
+            white-space: nowrap;
+            vertical-align: middle;
+        }
+
+        .table td {
+            vertical-align: middle;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        /* TOMBOL */
+        .btn-primary {
+            background: #3157d5;
+            border-color: #3157d5;
+        }
+
+        .btn-primary:hover {
+            background: #2445b8;
+            border-color: #2445b8;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+            white-space: nowrap;
+        }
+
+        /* STATUS */
+        .badge-status {
+            padding: 7px 10px;
+            border-radius: 5px;
+            display: inline-block;
+            font-size: 12px;
+        }
+
+        .status-aktif {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-nonaktif {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* DATATABLES */
+        .dataTables_wrapper {
+            padding-top: 8px;
+        }
+
+        .dataTables_filter input,
+        .dataTables_length select {
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            padding: 5px 8px;
+        }
+
+        .dataTables_info {
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        .page-item.active .page-link {
+            background: #3157d5;
+            border-color: #3157d5;
+        }
+
+        .page-link {
+            color: #3157d5;
+        }
+
+        @media (max-width: 767px) {
+            .sidebar {
+                min-height: auto;
+            }
+
+            .content {
+                padding: 15px;
+            }
+        }
+    </style>
 </head>
 
-<body class="bg-light">
+<body>
 
 <div class="container-fluid">
     <div class="row">
 
         <!-- SIDEBAR -->
-        <aside class="col-md-3 col-lg-2 bg-dark min-vh-100 p-3">
-            <h4 class="text-white mb-4">My Website</h4>
+        <aside class="col-md-3 col-lg-2 sidebar">
+
+            <h4>My Website</h4>
 
             <ul class="nav nav-pills flex-column">
-                <li class="nav-item mb-2">
-                    <a href="dashboard.php" class="nav-link text-white">
-                        Dashboard
-                    </a>
-                </li>
-                <li class="nav-item mb-2">
-                    <a href="kelola_siswa.php" class="nav-link text-white">
-                        Data Siswa
-                    </a>
-                </li>
-                <li class="nav-item mb-2">
-                    <a href="kelola_guru.php" class="nav-link active">
-                        Data Guru
-                    </a>
-                </li>
-                <li class="nav-item mb-2">
-                    <a href="Kelola_kelas.php" class="nav-link text-white">
-                        Data Kelas
-                    </a>
-                </li>
-                <li class="nav-item mb-2">
-                    <a href="kelola_tahun_ajaran.php" class="nav-link text-white">
-                        Kelola Tahun Ajaran
-                    </a>
-                </li>
-                <li class="nav-item mb-2">
-                    <a href="kelola_wali_kelas.php" class="nav-link text-white">
-                        Kelola Walikelas
-                    </a>
-                </li>
-                <li class="nav-item mb-2">
-                    <a href="penempatan_siwa.php" class="nav-link text-white">
-                        Penempatan Siswa
-                    </a>
-                </li>
-                <li class="nav-item mb-2">
-                    <a href="kelola_kategori_pelanggaran.php"
-                       class="nav-link text-white">
-                        Pelanggaran Kategori
-                    </a>
-                </li>
-                <li class="nav-item mb-2">
-                    <a href="tentang_saya.php" class="nav-link text-white">
-                        About Me
-                    </a>
-                </li>
-
-                <hr class="text-secondary">
 
                 <li class="nav-item">
-                    <a href="logout.php" class="nav-link text-danger">
-                        Logout
+                    <a href="dashboard.php" class="nav-link">
+                        &#8962; Dashboard
                     </a>
                 </li>
+
+                <li class="nav-item">
+                    <a href="kelola_siswa.php" class="nav-link">
+                       ♟ Data Siswa
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="kelola_guru.php" class="nav-link active">
+                     ♟ Data Guru
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="kelola_kelas.php" class="nav-link">
+                        &#9638; Data Kelas
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="kelola_tahun_ajaran.php" class="nav-link">
+                        &#9719; Kelola Tahun Ajaran
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="kelola_wali_kelas.php" class="nav-link">
+                        &#9817; Kelola Wali Kelas
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="kelola_penempatan_siswa.php" class="nav-link">
+                        &#8644; Penempatan Siswa
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="kelola_kategori_pelanggaran.php" class="nav-link">
+                        &#9776; Kategori Pelanggaran
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="tentang_saya.php" class="nav-link">
+                        &#8505; About Me
+                    </a>
+                </li>
+
+                <hr style="border-color: #475569;">
+
+                <li class="nav-item">
+                    <a href="logout.php"
+                       class="nav-link logout"
+                       onclick="return confirm('Yakin ingin logout?')">
+                        &#10140; Logout
+                    </a>
+                </li>
+
             </ul>
         </aside>
+        <!-- KONTEN UTAMA -->
+        <main class="col-md-9 col-lg-10 content">
 
-        <!-- KONTEN -->
-        <main class="col-md-9 col-lg-10 p-4">
+            <h2 class="page-title">Tambah Guru</h2>
 
-            <div class="mb-4">
-                <h2 class="fw-bold">Tambah Guru</h2>
-                <p class="text-secondary">
-                    Tambahkan data guru baru ke dalam sistem.
-                </p>
-            </div>
+            <p class="page-description">
+                Tambahkan data guru baru ke dalam sistem.
+            </p>
 
-            <a href="kelola_guru.php"
-               class="btn btn-outline-secondary btn-sm mb-3">
-                &larr; Kembali ke Data Guru
-            </a>
+            <!-- PESAN ERROR -->
+            <?php if ($error !== '') { ?>
+                <div class="alert alert-danger alert-dismissible fade show">
+                    <?= e($error) ?>
 
-            <?php if ($pesan !== '') { ?>
-                <div class="alert alert-<?= $tipe_pesan ?>">
-                    <?= htmlspecialchars($pesan) ?>
+                    <button
+                        type="button"
+                        class="close"
+                        data-dismiss="alert"
+                        aria-label="Tutup"
+                    >
+                        <span>&times;</span>
+                    </button>
                 </div>
             <?php } ?>
 
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white py-3">
-                    <h5 class="mb-0">Formulir Data Guru</h5>
-                </div>
+            <!-- FORM CARD -->
+            <div class="form-card">
 
-                <div class="card-body p-4">
+                <h5>Formulir Data Guru</h5>
 
-                    <form method="POST" action="">
+                <p class="subtitle">
+                    Lengkapi informasi guru pada kolom berikut.
+                    Kolom bertanda
+                    <span class="required">*</span>
+                    wajib diisi.
+                </p>
 
-                        <div class="mb-3">
-                            <label for="nip" class="form-label">
-                                NIP <span class="text-danger">*</span>
-                            </label>
-                            <input type="text" name="nip" id="nip"
-                                   class="form-control"
-                                   maxlength="30"
-                                   value="<?= htmlspecialchars($_POST['nip'] ?? '') ?>"
-                                   placeholder="Masukkan NIP guru"
-                                   required>
-                        </div>
+                <form method="POST" action="">
 
-                        <div class="mb-3">
-                            <label for="nama" class="form-label">
-                                Nama Lengkap
-                                <span class="text-danger">*</span>
-                            </label>
-                            <input type="text" name="nama" id="nama"
-                                   class="form-control"
-                                   maxlength="150"
-                                   value="<?= htmlspecialchars($_POST['nama'] ?? '') ?>"
-                                   placeholder="Masukkan nama lengkap guru"
-                                   required>
-                        </div>
+                    <!-- NIP -->
+                    <div class="form-group">
+                        <label for="nip">
+                            NIP <span class="required">*</span>
+                        </label>
 
-                        <div class="mb-3">
-                            <label for="email" class="form-label">
-                                Email <span class="text-danger">*</span>
-                            </label>
-                            <input type="email" name="email" id="email"
-                                   class="form-control"
-                                   maxlength="150"
-                                   value="<?= htmlspecialchars($_POST['email'] ?? '') ?>"
-                                   placeholder="contoh@email.com"
-                                   required>
-                        </div>
+                        <input
+                            type="text"
+                            name="nip"
+                            id="nip"
+                            class="form-control"
+                            placeholder="Masukkan NIP guru"
+                            value="<?= e($nip) ?>"
+                            maxlength="18"
+                            required
+                        >
+                    </div>
 
-                        <div class="mb-3">
-                            <label for="user_id" class="form-label">
-                                Akun Pengguna
-                                <span class="text-danger">*</span>
-                            </label>
+                    <!-- NAMA -->
+                    <div class="form-group">
+                        <label for="nama">
+                            Nama Lengkap
+                            <span class="required">*</span>
+                        </label>
 
-                            <select name="user_id" id="user_id"
-                                    class="form-select" required>
-                                <option value="">-- Pilih akun pengguna --</option>
+                        <input
+                            type="text"
+                            name="nama"
+                            id="nama"
+                            class="form-control"
+                            placeholder="Masukkan nama lengkap guru"
+                            value="<?= e($nama) ?>"
+                            maxlength="150"
+                            required
+                        >
+                    </div>
 
-                                <?php while ($user = mysqli_fetch_assoc($users)) { ?>
-                                    <option value="<?= (int)$user['id'] ?>"
-                                        <?= (($_POST['user_id'] ?? '') == $user['id'])
-                                            ? 'selected' : '' ?>>
-                                        <?= htmlspecialchars($user['name']) ?>
-                                        (<?= htmlspecialchars($user['email'] ?? '-') ?>)
-                                        - <?= htmlspecialchars($user['role']) ?>
-                                    </option>
-                                <?php } ?>
-                            </select>
+                    <!-- EMAIL -->
+                    <div class="form-group">
+                        <label for="email">
+                            Email <span class="required">*</span>
+                        </label>
 
-                            <small class="text-secondary">
-                                Pilih akun yang memang terkait dengan guru tersebut.
-                            </small>
-                        </div>
+                        <input
+                            type="email"
+                            name="email"
+                            id="email"
+                            class="form-control"
+                            placeholder="contoh@email.com"
+                            value="<?= e($email) ?>"
+                            maxlength="150"
+                            required
+                        >
+                    </div>
 
-                        <div class="mb-4">
-                            <label for="status_aktif" class="form-label">
-                                Status Guru
-                            </label>
+                    <!-- AKUN PENGGUNA -->
+                    <div class="form-group">
+                        <label for="user_id">
+                            Akun Pengguna
+                            <span class="required">*</span>
+                        </label>
 
-                            <select name="status_aktif" id="status_aktif"
-                                    class="form-select">
-                                <option value="1"
-                                    <?= (string)($_POST['status_aktif'] ?? '1') === '1'
-                                        ? 'selected' : '' ?>>
-                                    Aktif
+                        <select
+                            name="user_id"
+                            id="user_id"
+                            class="form-control"
+                            required
+                        >
+                            <option value="">
+                                -- Pilih akun pengguna --
+                            </option>
+
+                            <?php
+                            mysqli_data_seek($users, 0);
+
+                            while ($user = mysqli_fetch_assoc($users)) {
+                            ?>
+                                <option
+                                    value="<?= (int) $user['id'] ?>"
+                                    <?= (string) $user_id ===
+                                        (string) $user['id']
+                                        ? 'selected' : '' ?>
+                                >
+                                    <?= e($user['name']) ?>
+                                    (<?= e($user['email'] ?? '-') ?>)
                                 </option>
-                                <option value="0"
-                                    <?= (string)($_POST['status_aktif'] ?? '') === '0'
-                                        ? 'selected' : '' ?>>
-                                    Tidak Aktif
-                                </option>
-                            </select>
-                        </div>
+                            <?php } ?>
+                        </select>
 
-                        <hr>
+                        <small class="form-text">
+                            Pilih akun pengguna yang memiliki role guru.
+                        </small>
+                    </div>
 
-                        <div class="d-flex justify-content-end gap-2">
-                            <a href="kelola_guru.php"
-                               class="btn btn-secondary">
-                                Batal
-                            </a>
+                    <!-- STATUS -->
+                    <div class="form-group">
+                        <label for="status_aktif">
+                            Status Guru
+                        </label>
 
-                            <button type="submit" class="btn btn-primary">
-                                Simpan Data Guru
-                            </button>
-                        </div>
+                        <select
+                            name="status_aktif"
+                            id="status_aktif"
+                            class="form-control"
+                            required
+                        >
+                            <option
+                                value="1"
+                                <?= $status_aktif === '1'
+                                    ? 'selected' : '' ?>
+                            >
+                                Aktif
+                            </option>
 
-                    </form>
-                </div>
+                            <option
+                                value="0"
+                                <?= $status_aktif === '0'
+                                    ? 'selected' : '' ?>
+                            >
+                                Tidak Aktif
+                            </option>
+                        </select>
+                    </div>
+
+                    <!-- TOMBOL -->
+                    <div class="form-actions d-flex flex-wrap">
+
+                        <button
+                            type="submit"
+                            class="btn btn-primary mr-2 mb-2"
+                        >
+                            &#10003; Simpan Data
+                        </button>
+
+                        <a
+                            href="kelola_guru.php"
+                            class="btn btn-secondary mb-2"
+                        >
+                            Kembali
+                        </a>
+
+                    </div>
+
+                </form>
+
             </div>
 
+            <footer>
+                &copy; <?= date('Y') ?> My Website. All rights reserved.
+            </footer>
+
         </main>
+
     </div>
 </div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
 </html>

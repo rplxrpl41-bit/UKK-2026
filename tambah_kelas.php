@@ -75,38 +75,31 @@ function e($nilai)
         rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
     >
-
     <style>
-        * {
-            box-sizing: border-box;
-        }
-
         body {
-            margin: 0;
-            font-family: Arial, sans-serif;
             background: #f4f6f9;
-            color: #1e293b;
+            font-family: Arial, sans-serif;
+            margin: 0;
         }
 
+        /* SIDEBAR - TETAP SEPERTI CONTOH */
         .sidebar {
-            min-height: 100vh;
             background: #172554;
+            color: white;
+            min-height: 100vh;
             padding: 22px 15px;
         }
 
         .sidebar h4 {
-            color: white;
             font-weight: bold;
-            margin-bottom: 28px;
-            padding-left: 10px;
+            margin-bottom: 30px;
         }
 
         .sidebar .nav-link {
-            color: #dbeafe;
-            padding: 11px 12px;
-            margin-bottom: 5px;
-            border-radius: 7px;
-            font-size: 14px;
+            color: #e2e8f0;
+            padding: 12px 14px;
+            margin-bottom: 6px;
+            border-radius: 6px;
             transition: 0.2s;
         }
 
@@ -118,103 +111,249 @@ function e($nilai)
         .sidebar .nav-link.active {
             background: #3157d5;
             color: white;
-            font-weight: bold;
         }
 
         .sidebar .logout {
-            color: #fecaca;
+            color: #fca5a5;
         }
 
+        /* KONTEN */
         .content {
             padding: 28px;
+            min-width: 0;
         }
 
         .page-title {
-            font-size: 26px;
-            font-weight: bold;
             color: #172554;
-            margin-bottom: 5px;
+            font-weight: bold;
+            margin-bottom: 8px;
         }
 
         .page-description {
             color: #64748b;
-            font-size: 14px;
-            margin-bottom: 25px;
         }
 
-        .form-card {
+        /* KARTU */
+        .card-main {
             background: white;
+            border: none;
             border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 3px 12px rgba(15, 23, 42, 0.06);
-            border: 1px solid #e2e8f0;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
         }
 
-        .form-card h5 {
-            color: #172554;
-            font-weight: bold;
-            margin-bottom: 7px;
+        /* TABEL */
+        .table-responsive {
+            overflow-x: auto;
         }
 
-        .form-card .subtitle {
-            color: #64748b;
-            font-size: 13px;
-            margin-bottom: 25px;
+        .table thead th {
+            background: #172554;
+            color: white;
+            white-space: nowrap;
+            vertical-align: middle;
         }
 
-        label {
-            color: #334155;
-            font-size: 14px;
-            font-weight: bold;
+        .table td {
+            vertical-align: middle;
         }
 
-        .form-control {
-            height: 43px;
-            border: 1px solid #cbd5e1;
-            border-radius: 7px;
-            font-size: 14px;
+        /* STATUS */
+        .badge-status {
+            padding: 7px 10px;
+            border-radius: 5px;
+            display: inline-block;
+            white-space: nowrap;
         }
 
-        .form-control:focus {
-            border-color: #3157d5;
-            box-shadow: 0 0 0 0.15rem rgba(49, 87, 213, 0.15);
+        .status-aktif {
+            background: #d1fae5;
+            color: #065f46;
         }
 
+        .status-nonaktif {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* TOMBOL */
         .btn-primary {
             background: #3157d5;
             border-color: #3157d5;
-            border-radius: 7px;
-            padding: 10px 20px;
-            font-size: 14px;
-            font-weight: bold;
         }
 
         .btn-primary:hover {
-            background: #2445b5;
-            border-color: #2445b5;
+            background: #2445b8;
+            border-color: #2445b8;
         }
 
-        .btn-secondary {
-            border-radius: 7px;
-            padding: 10px 20px;
-            font-size: 14px;
+        .dataTables_wrapper {
+            padding-top: 8px;
         }
 
-        .form-actions {
-            border-top: 1px solid #e2e8f0;
-            padding-top: 20px;
+        .dataTables_filter input,
+        .dataTables_length select {
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            padding: 5px 8px;
+        }
+
+        .dataTables_info {
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 767px) 
+            .sidebar {
+                min-height: auto;
+            }
+
+            .content {
+                padding: 15px;
+            }
+        .main-content {
+            padding: 28px;
+        }
+
+        .page-title {
+            color: #172554;
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 6px;
+        }
+
+        .page-description {
+            color: #64748b;
+            margin-bottom: 25px;
+        }
+
+        .welcome-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 25px;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
+            border-left: 5px solid #3157d5;
+        }
+
+        .welcome-card h4 {
+            color: #172554;
+            font-weight: bold;
+        }
+
+        .stat-card {
+            border: none;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
+            height: 100%;
+            transition: transform 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .stat-card .card-body {
+            padding: 24px;
+        }
+
+        .stat-blue {
+            background: #3157d5;
+            color: white;
+        }
+
+        .stat-yellow {
+            background: #facc15;
+            color: #172554;
+        }
+
+        .stat-navy {
+            background: #172554;
+            color: white;
+        }
+
+        .stat-light {
+            background: white;
+            color: #172554;
+            border-bottom: 4px solid #3157d5;
+        }
+
+        .stat-label {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .stat-number {
+            font-size: 34px;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .stat-icon {
+            font-size: 28px;
+            opacity: 0.9;
+        }
+
+        .section-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
             margin-top: 25px;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
         }
 
-        .required {
-            color: #dc2626;
+        .section-title {
+            color: #172554;
+            font-size: 19px;
+            font-weight: bold;
+            margin-bottom: 18px;
         }
 
-        footer {
+        .quick-link {
+            display: block;
+            height: 100%;
+            padding: 18px;
+            border: 1px solid #e2e8f0;
+            border-radius: 9px;
+            text-decoration: none;
+            color: #172554;
+            transition: 0.2s;
+        }
+
+        .quick-link:hover {
+            background: #eff6ff;
+            border-color: #3157d5;
+            color: #3157d5;
+            transform: translateY(-2px);
+        }
+
+        .quick-link .quick-icon {
+            font-size: 25px;
+            margin-bottom: 10px;
+        }
+
+        .quick-link h6 {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .quick-link p {
+            color: #64748b;
+            font-size: 13px;
+            margin: 0;
+        }
+
+        .footer-text {
             color: #94a3b8;
-            font-size: 12px;
-            text-align: center;
-            margin-top: 30px;
+            font-size: 13px;
+            margin-top: 25px;
         }
 
         @media (max-width: 767px) {
@@ -222,12 +361,17 @@ function e($nilai)
                 min-height: auto;
             }
 
-            .content {
-                padding: 20px 15px;
+            .main-content {
+                padding: 18px;
             }
 
-            .form-card {
+            .welcome-card,
+            .section-card {
                 padding: 18px;
+            }
+
+            .page-title {
+                font-size: 24px;
             }
         }
     </style>
@@ -238,7 +382,7 @@ function e($nilai)
 <div class="container-fluid">
     <div class="row">
 
-        <!-- SIDEBAR: SAMA SEPERTI KELola_siswa.php -->
+      
         <aside class="col-md-3 col-lg-2 sidebar">
 
             <h4>My Website</h4>
@@ -253,13 +397,13 @@ function e($nilai)
 
                 <li>
                     <a href="kelola_siswa.php" class="nav-link">
-                        &#9813; Data Siswa
+                         ♟ Data Siswa
                     </a>
                 </li>
 
                 <li>
                     <a href="kelola_guru.php" class="nav-link">
-                        &#9813; Data Guru
+                         ♟ Data Guru
                     </a>
                 </li>
 

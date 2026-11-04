@@ -151,38 +151,30 @@ function e($nilai)
         rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
     >
-
-    <style>
-        * {
-            box-sizing: border-box;
-        }
-
+ <style>
         body {
-            margin: 0;
-            font-family: Arial, sans-serif;
             background: #f4f6f9;
-            color: #1e293b;
+            font-family: Arial, sans-serif;
+            margin: 0;
         }
 
         .sidebar {
-            min-height: 100vh;
             background: #172554;
+            color: white;
+            min-height: 100vh;
             padding: 22px 15px;
         }
 
         .sidebar h4 {
-            color: white;
             font-weight: bold;
-            margin-bottom: 28px;
-            padding-left: 10px;
+            margin-bottom: 30px;
         }
 
         .sidebar .nav-link {
-            color: #dbeafe;
-            padding: 11px 12px;
-            margin-bottom: 5px;
-            border-radius: 7px;
-            font-size: 14px;
+            color: #e2e8f0;
+            padding: 12px 14px;
+            margin-bottom: 6px;
+            border-radius: 6px;
             transition: 0.2s;
         }
 
@@ -194,11 +186,10 @@ function e($nilai)
         .sidebar .nav-link.active {
             background: #3157d5;
             color: white;
-            font-weight: bold;
         }
 
         .sidebar .logout {
-            color: #fecaca;
+            color: #fca5a5;
         }
 
         .content {
@@ -206,101 +197,79 @@ function e($nilai)
         }
 
         .page-title {
-            font-size: 26px;
-            font-weight: bold;
             color: #172554;
-            margin-bottom: 5px;
+            font-weight: bold;
+            margin-bottom: 8px;
         }
 
-        .page-description {
-            color: #64748b;
-            font-size: 14px;
-            margin-bottom: 25px;
-        }
-
-        .form-card {
+        .card-main {
             background: white;
+            border: none;
             border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 3px 12px rgba(15, 23, 42, 0.06);
-            border: 1px solid #e2e8f0;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
         }
 
-        .form-card h5 {
-            color: #172554;
-            font-weight: bold;
-            margin-bottom: 7px;
+        .table thead th {
+            background: #172554;
+            color: white;
+            white-space: nowrap;
+            vertical-align: middle;
         }
 
-        .form-card .subtitle {
-            color: #64748b;
-            font-size: 13px;
-            margin-bottom: 25px;
+        .table td {
+            vertical-align: middle;
         }
 
-        label {
-            color: #334155;
-            font-size: 14px;
-            font-weight: bold;
+        .table-responsive {
+            overflow-x: auto;
         }
 
-        .form-control {
-            min-height: 43px;
-            border: 1px solid #cbd5e1;
-            border-radius: 7px;
-            font-size: 14px;
+        .badge-status {
+            padding: 7px 10px;
+            border-radius: 5px;
+            display: inline-block;
         }
 
-        textarea.form-control {
-            min-height: 110px;
-            resize: vertical;
+        .status-aktif {
+            background: #d1fae5;
+            color: #065f46;
         }
 
-        .form-control:focus {
-            border-color: #3157d5;
-            box-shadow: 0 0 0 0.15rem rgba(49, 87, 213, 0.15);
+        .status-nonaktif {
+            background: #fee2e2;
+            color: #991b1b;
         }
 
         .btn-primary {
             background: #3157d5;
             border-color: #3157d5;
-            border-radius: 7px;
-            padding: 10px 20px;
-            font-size: 14px;
-            font-weight: bold;
         }
 
         .btn-primary:hover {
-            background: #2445b5;
-            border-color: #2445b5;
+            background: #2445b8;
+            border-color: #2445b8;
         }
 
-        .btn-secondary {
-            border-radius: 7px;
-            padding: 10px 20px;
-            font-size: 14px;
+        .dataTables_wrapper {
+            padding-top: 8px;
         }
 
-        .form-actions {
-            border-top: 1px solid #e2e8f0;
-            padding-top: 20px;
-            margin-top: 25px;
+        .dataTables_filter input,
+        .dataTables_length select {
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            padding: 5px 8px;
         }
 
-        .required {
-            color: #dc2626;
-        }
-
-        .form-text {
-            font-size: 12px;
+        .dataTables_info {
             color: #64748b;
+            font-size: 13px;
         }
 
-        footer {
-            color: #94a3b8;
-            font-size: 12px;
-            text-align: center;
-            margin-top: 30px;
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+            white-space: nowrap;
         }
 
         @media (max-width: 767px) {
@@ -309,11 +278,12 @@ function e($nilai)
             }
 
             .content {
-                padding: 20px 15px;
+                padding: 15px;
             }
 
-            .form-card {
-                padding: 18px;
+            .sidebar .nav {
+                display: flex;
+                flex-direction: column;
             }
         }
     </style>
@@ -324,62 +294,61 @@ function e($nilai)
 <div class="container-fluid">
     <div class="row">
 
-        <!-- SIDEBAR SAMA SEPERTI HALAMAN SEBELUMNYA -->
+        <!-- SIDEBAR -->
         <aside class="col-md-3 col-lg-2 sidebar">
-
             <h4>My Website</h4>
 
             <ul class="nav nav-pills flex-column">
 
-                <li>
+                <li class="nav-item">
                     <a href="dashboard.php" class="nav-link">
                         &#8962; Dashboard
                     </a>
                 </li>
 
-                <li>
+                <li class="nav-item">
                     <a href="kelola_siswa.php" class="nav-link active">
-                        &#9813; Data Siswa
+                         ♟ Data Siswa
                     </a>
                 </li>
 
-                <li>
+                <li class="nav-item">
                     <a href="kelola_guru.php" class="nav-link">
-                        &#9813; Data Guru
+                         ♟ Data Guru
                     </a>
                 </li>
 
-                <li>
+                <li class="nav-item">
                     <a href="kelola_kelas.php" class="nav-link">
                         &#9638; Data Kelas
                     </a>
                 </li>
 
-                <li>
+                <li class="nav-item">
                     <a href="kelola_tahun_ajaran.php" class="nav-link">
                         &#9719; Kelola Tahun Ajaran
                     </a>
                 </li>
 
-                <li>
+                <li class="nav-item">
                     <a href="kelola_wali_kelas.php" class="nav-link">
                         &#9817; Kelola Wali Kelas
                     </a>
                 </li>
 
-                <li>
+                <li class="nav-item">
                     <a href="kelola_penempatan_siswa.php" class="nav-link">
                         &#8644; Penempatan Siswa
                     </a>
                 </li>
 
-                <li>
+                <li class="nav-item">
                     <a href="kelola_kategori_pelanggaran.php" class="nav-link">
                         &#9776; Kategori Pelanggaran
                     </a>
                 </li>
 
-                <li>
+                <li class="nav-item">
                     <a href="tentang_saya.php" class="nav-link">
                         &#8505; About Me
                     </a>
@@ -387,12 +356,9 @@ function e($nilai)
 
                 <hr style="border-color: #475569;">
 
-                <li>
-                    <a
-                        href="logout.php"
-                        class="nav-link logout"
-                        onclick="return confirm('Yakin ingin logout?')"
-                    >
+                <li class="nav-item">
+                    <a href="logout.php" class="nav-link logout"
+                       onclick="return confirm('Yakin ingin logout?')">
                         &#10140; Logout
                     </a>
                 </li>
@@ -446,7 +412,7 @@ function e($nilai)
                             class="form-control"
                             placeholder="Masukkan NIS siswa"
                             value="<?= e($nis) ?>"
-                            maxlength="30"
+                            maxlength="10"
                         >
 
                         <small class="form-text">
@@ -467,7 +433,7 @@ function e($nilai)
                             class="form-control"
                             placeholder="Masukkan NISN siswa"
                             value="<?= e($nisn) ?>"
-                            maxlength="20"
+                            maxlength="10"
                             required
                         >
                     </div>

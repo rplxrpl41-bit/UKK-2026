@@ -46,134 +46,99 @@ $role = $_SESSION['role'] ?? '';
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
 
+   
     <style>
-        * {
-            box-sizing: border-box;
-        }
-
         body {
-            margin: 0;
-            font-family: Arial, sans-serif;
             background: #f4f6f9;
-            color: #1f2937;
+            font-family: Arial, sans-serif;
+            margin: 0;
         }
 
         .sidebar {
-            width: 250px;
-            height: 100vh;
-            position: fixed;
-            top: 0;
-            left: 0;
             background: #172554;
             color: white;
-            padding: 25px 15px;
-            overflow-y: auto;
+            min-height: 100vh;
+            padding: 22px 15px;
         }
 
         .sidebar h4 {
-            font-size: 20px;
             font-weight: bold;
-            text-align: center;
-            margin-bottom: 8px;
+            margin-bottom: 30px;
         }
 
-        .user-info {
-            text-align: center;
-            font-size: 13px;
-            color: #cbd5e1;
-            margin-bottom: 25px;
-        }
-
-        .sidebar a {
-            display: block;
+        .sidebar .nav-link {
             color: #e2e8f0;
-            text-decoration: none;
-            padding: 12px 15px;
+            padding: 12px 14px;
             margin-bottom: 6px;
-            border-radius: 8px;
-            font-size: 14px;
+            border-radius: 6px;
             transition: 0.2s;
         }
 
-        .sidebar a:hover {
+        .sidebar .nav-link:hover {
             background: #263b70;
             color: white;
         }
 
-        .sidebar a.active {
+        .sidebar .nav-link.active {
             background: #3157d5;
             color: white;
-            font-weight: bold;
         }
 
-        .sidebar a.logout {
-            margin-top: 20px;
-            background: #b91c1c;
-            color: white;
+        .sidebar .logout {
+            color: #fca5a5;
         }
 
         .content {
-            margin-left: 250px;
-            padding: 30px;
-        }
-
-        .page-header {
-            margin-bottom: 25px;
-        }
-
-        .page-header h2 {
-            color: #172554;
-            font-size: 26px;
-            font-weight: bold;
-            margin-bottom: 6px;
-        }
-
-        .page-header p {
-            color: #6b7280;
-            margin: 0;
-        }
-
-        .form-card {
-            background: white;
-            border-radius: 12px;
             padding: 28px;
-            box-shadow: 0 4px 15px rgba(15, 23, 42, 0.06);
-            max-width: 900px;
         }
 
-        .form-card h5 {
+        .page-title {
             color: #172554;
             font-weight: bold;
-            margin-bottom: 22px;
-        }
-
-        label {
-            color: #172554;
-            font-weight: 600;
             margin-bottom: 8px;
         }
 
-        .form-control {
-            border: 1px solid #ced4da;
-            border-radius: 7px;
-            min-height: 42px;
+        .card-main {
+            background: white;
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
         }
 
-        textarea.form-control {
-            min-height: 100px;
-            resize: vertical;
+        .table thead th {
+            background: #172554;
+            color: white;
+            white-space: nowrap;
+            vertical-align: middle;
         }
 
-        .form-control:focus {
-            border-color: #3157d5;
-            box-shadow: 0 0 0 0.15rem rgba(49, 87, 213, 0.15);
+        .table td {
+            vertical-align: middle;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        .badge-status {
+            padding: 7px 10px;
+            border-radius: 5px;
+            display: inline-block;
+        }
+
+        .status-aktif {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-nonaktif {
+            background: #fee2e2;
+            color: #991b1b;
         }
 
         .btn-primary {
             background: #3157d5;
             border-color: #3157d5;
-            border-radius: 7px;
-            padding: 9px 20px;
         }
 
         .btn-primary:hover {
@@ -181,25 +146,40 @@ $role = $_SESSION['role'] ?? '';
             border-color: #2445b8;
         }
 
-        .btn-secondary {
-            border-radius: 7px;
-            padding: 9px 20px;
+        .dataTables_wrapper {
+            padding-top: 8px;
         }
 
-        @media (max-width: 768px) {
+        .dataTables_filter input,
+        .dataTables_length select {
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            padding: 5px 8px;
+        }
+
+        .dataTables_info {
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 767px) {
             .sidebar {
-                position: relative;
-                width: 100%;
-                height: auto;
+                min-height: auto;
             }
 
             .content {
-                margin-left: 0;
-                padding: 20px;
+                padding: 15px;
             }
 
-            .form-card {
-                padding: 20px;
+            .sidebar .nav {
+                display: flex;
+                flex-direction: column;
             }
         }
     </style>
@@ -207,32 +187,80 @@ $role = $_SESSION['role'] ?? '';
 
 <body>
 
-<div class="sidebar">
-    <h4>Sistem Pelanggaran</h4>
+<div class="container-fluid">
+    <div class="row">
 
-    <div class="user-info">
-        <?= e($namaUser) ?> Â· <?= e(ucfirst($role)) ?>
-    </div>
+        <!-- SIDEBAR -->
+        <aside class="col-md-3 col-lg-2 sidebar">
+            <h4>My Website</h4>
 
-    <a href="dashboard.php">â–¦ Dashboard</a>
-    <a href="kelola_siswa.php" class="active">â™™ Kelola Siswa</a>
-    <a href="kelola_guru.php">â™™ Kelola Guru</a>
-    <a href="kelola_kelas.php">â–£ Kelola Kelas</a>
-    <a href="kelola_tahun_ajaran.php">â–¤ Tahun Ajaran</a>
-    <a href="penempatan_siswa.php">â‡„ Penempatan Siswa</a>
-    <a href="kelola_wali_kelas.php">â™§ Wali Kelas</a>
-    <a href="kelola_kategori_pelanggaran.php">â–¤ Kategori Pelanggaran</a>
-    <a href="menu3.php">âš  Jenis Pelanggaran</a>
-    <a href="catatan.php">â˜· Catatan Pelanggaran</a>
-    <a href="laporan.php">â–§ Laporan</a>
+            <ul class="nav nav-pills flex-column">
 
-    <?php if ($role === 'admin'): ?>
-        <a href="menu4.php">âš™ Pengguna/Admin</a>
-    <?php endif; ?>
+                <li class="nav-item">
+                    <a href="dashboard.php" class="nav-link">
+                        &#8962; Dashboard
+                    </a>
+                </li>
 
-    <a href="logout.php" class="logout"
-       onclick="return confirm('Yakin ingin keluar?')">â†ª Logout</a>
-</div>
+                <li class="nav-item">
+                    <a href="kelola_siswa.php" class="nav-link active">
+                         ♟ Data Siswa
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="kelola_guru.php" class="nav-link">
+                         ♟ Data Guru
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="kelola_kelas.php" class="nav-link">
+                        &#9638; Data Kelas
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="kelola_tahun_ajaran.php" class="nav-link">
+                        &#9719; Kelola Tahun Ajaran
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="kelola_wali_kelas.php" class="nav-link">
+                        &#9817; Kelola Wali Kelas
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="kelola_penempatan_siswa.php" class="nav-link">
+                        &#8644; Penempatan Siswa
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="kelola_kategori_pelanggaran.php" class="nav-link">
+                        &#9776; Kategori Pelanggaran
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="tentang_saya.php" class="nav-link">
+                        &#8505; About Me
+                    </a>
+                </li>
+
+                <hr style="border-color: #475569;">
+
+                <li class="nav-item">
+                    <a href="logout.php" class="nav-link logout"
+                       onclick="return confirm('Yakin ingin logout?')">
+                        &#10140; Logout
+                    </a>
+                </li>
+
+            </ul>
+        </aside>
 
 <div class="content">
     <div class="page-header">
