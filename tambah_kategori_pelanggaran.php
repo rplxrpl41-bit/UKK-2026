@@ -375,12 +375,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <div class="d-flex flex-wrap">
                 <button type="submit" class="btn btn-primary mr-2 mb-2">
-                    ðŸ’¾ Simpan Kategori
+                   Simpan Kategori
                 </button>
 
                 <a href="kelola_kategori_pelanggaran.php"
                    class="btn btn-secondary mb-2">
-                    â†© Kembali
+                     Kembali
                 </a>
             </div>
         </form>
