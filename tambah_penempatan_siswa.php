@@ -1,4 +1,3 @@
-
 <?php
 session_start();
 
@@ -216,8 +215,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Tambah Penempatan Siswa</title>
 
     <link
-        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
         rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
     >
 
     <style>
@@ -263,29 +262,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         /* KONTEN */
-        .main-content {
+        .content {
             padding: 28px;
-            min-width: 0;
         }
 
         .page-title {
             color: #172554;
-            font-size: 28px;
             font-weight: bold;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
         }
 
         .page-description {
             color: #64748b;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
 
-        /* FORM CARD */
+        .card-main {
+            background: white;
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
+        }
+
+        /* FORM */
         .form-card {
             background: white;
+            padding: 25px;
             border-radius: 12px;
-            padding: 28px;
             box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
+            margin-top: 20px;
         }
 
         .form-card h5 {
@@ -300,26 +305,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             margin-bottom: 25px;
         }
 
-        .form-label {
-            color: #172554;
-            font-weight: 600;
-        }
-
         .required {
-            color: #dc3545;
+            color: red;
         }
 
-        .form-control,
-        .form-select {
-            border-radius: 7px;
-            padding: 10px 12px;
-            border: 1px solid #cbd5e1;
+        .form-control {
+            border-radius: 6px;
+            min-height: 40px;
         }
 
-        .form-control:focus,
-        .form-select:focus {
-            border-color: #3157d5;
-            box-shadow: 0 0 0 0.2rem rgba(49, 87, 213, 0.15);
+        .form-actions {
+            margin-top: 25px;
         }
 
         /* TOMBOL */
@@ -333,15 +329,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border-color: #2445b8;
         }
 
-        .form-actions {
-            margin-top: 25px;
-        }
-
         footer {
-            color: #94a3b8;
+            color: #64748b;
             font-size: 13px;
-            margin-top: 25px;
-            text-align: center;
+            margin-top: 30px;
         }
 
         /* RESPONSIVE */
@@ -350,7 +341,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 min-height: auto;
             }
 
-            .main-content {
+            .content {
                 padding: 18px;
             }
 
@@ -377,55 +368,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <ul class="nav nav-pills flex-column">
 
-                <li>
+                <li class="nav-item">
                     <a href="dashboard.php" class="nav-link">
                         &#8962; Dashboard
                     </a>
                 </li>
 
-                <li>
+                <li class="nav-item">
                     <a href="kelola_siswa.php" class="nav-link">
                         &#9817; Data Siswa
                     </a>
                 </li>
 
-                <li>
+                <li class="nav-item">
                     <a href="kelola_guru.php" class="nav-link">
                         &#9817; Data Guru
                     </a>
                 </li>
 
-                <li>
+                <li class="nav-item">
                     <a href="kelola_kelas.php" class="nav-link">
                         &#9638; Data Kelas
                     </a>
                 </li>
 
-                <li>
+                <li class="nav-item">
                     <a href="kelola_tahun_ajaran.php" class="nav-link">
                         &#9719; Kelola Tahun Ajaran
                     </a>
                 </li>
 
-                <li>
+                <li class="nav-item">
                     <a href="kelola_wali_kelas.php" class="nav-link">
                         &#9817; Kelola Wali Kelas
                     </a>
                 </li>
 
-                <li>
+                <li class="nav-item">
                     <a href="kelola_penempatan_siswa.php" class="nav-link active">
                         &#8644; Penempatan Siswa
                     </a>
                 </li>
 
-                <li>
+                <li class="nav-item">
                     <a href="kelola_kategori_pelanggaran.php" class="nav-link">
                         &#9776; Kategori Pelanggaran
                     </a>
                 </li>
 
-                <li>
+                <li class="nav-item">
                     <a href="tentang_saya.php" class="nav-link">
                         &#8505; About Me
                     </a>
@@ -433,7 +424,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 <hr style="border-color: #475569;">
 
-                <li>
+                <li class="nav-item">
                     <a
                         href="logout.php"
                         class="nav-link logout"
@@ -447,7 +438,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </aside>
 
         <!-- KONTEN UTAMA -->
-        <main class="col-md-9 col-lg-10 main-content">
+        <main class="col-md-9 col-lg-10 content">
 
             <h2 class="page-title">Tambah Penempatan Siswa</h2>
 
@@ -461,10 +452,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     <button
                         type="button"
-                        class="btn-close"
-                        data-bs-dismiss="alert"
+                        class="close"
+                        data-dismiss="alert"
                         aria-label="Tutup"
-                    ></button>
+                    >
+                        <span>&times;</span>
+                    </button>
                 </div>
             <?php endif; ?>
 
@@ -480,15 +473,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <form method="POST" action="">
 
                     <!-- SISWA -->
-                    <div class="mb-3">
-                        <label for="siswa_id" class="form-label">
+                    <div class="form-group">
+                        <label for="siswa_id">
                             Nama Siswa <span class="required">*</span>
                         </label>
 
                         <select
                             name="siswa_id"
                             id="siswa_id"
-                            class="form-select"
+                            class="form-control"
                             required
                         >
                             <option value="">-- Pilih Siswa --</option>
@@ -505,15 +498,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
 
                     <!-- KELAS -->
-                    <div class="mb-3">
-                        <label for="kelas_id" class="form-label">
+                    <div class="form-group">
+                        <label for="kelas_id">
                             Kelas <span class="required">*</span>
                         </label>
 
                         <select
                             name="kelas_id"
                             id="kelas_id"
-                            class="form-select"
+                            class="form-control"
                             required
                         >
                             <option value="">-- Pilih Kelas --</option>
@@ -530,15 +523,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
 
                     <!-- TAHUN AJARAN -->
-                    <div class="mb-3">
-                        <label for="tahun_ajaran_id" class="form-label">
+                    <div class="form-group">
+                        <label for="tahun_ajaran_id">
                             Tahun Ajaran <span class="required">*</span>
                         </label>
 
                         <select
                             name="tahun_ajaran_id"
                             id="tahun_ajaran_id"
-                            class="form-select"
+                            class="form-control"
                             required
                         >
                             <option value="">-- Pilih Tahun Ajaran --</option>
@@ -585,7 +578,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 value="<?= e($tanggal_selesai) ?>"
                             >
 
-                            <small class="text-muted">
+                            <small class="form-text text-muted">
                                 Kosongkan jika penempatan masih berlangsung.
                             </small>
                         </div>
@@ -593,7 +586,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
 
                     <!-- STATUS -->
-                    <div class="mb-3">
+                    <div class="form-group">
                         <label for="status_aktif" class="form-label">
                             Status Penempatan
                         </label>
@@ -601,7 +594,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <select
                             name="status_aktif"
                             id="status_aktif"
-                            class="form-select"
+                            class="form-control"
                             required
                         >
                             <option
@@ -625,7 +618,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                         <button
                             type="submit"
-                            class="btn btn-primary me-2 mb-2"
+                            class="btn btn-primary mr-2 mb-2"
                         >
                             &#10003; Simpan Data
                         </button>
@@ -652,7 +645,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
 </html>

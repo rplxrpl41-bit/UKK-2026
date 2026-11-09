@@ -1,9 +1,14 @@
-
 <?php
 session_start();
 
 include 'includes/cek_session.php';
 include 'config/koneksi.php';
+
+// Hanya admin yang boleh menambahkan siswa
+if (($_SESSION['role'] ?? '') !== 'admin') {
+    http_response_code(403);
+    die('Akses ditolak!');
+}
 
 $error = '';
 
@@ -15,7 +20,9 @@ $tanggal_lahir = '';
 $alamat = '';
 $status_aktif = '1';
 
+// Proses simpan data
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
     $nis = trim($_POST['nis'] ?? '');
     $nisn = trim($_POST['nisn'] ?? '');
     $nama = trim($_POST['nama'] ?? '');
@@ -24,6 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $alamat = trim($_POST['alamat'] ?? '');
     $status_aktif = (string) ($_POST['status_aktif'] ?? '1');
 
+    // Validasi
     if (
         $nisn === '' ||
         $nama === '' ||
@@ -32,77 +40,70 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $alamat === ''
     ) {
         $error = 'Semua kolom wajib diisi, kecuali NIS.';
+
     } elseif (!in_array($jenis_kelamin, ['Laki-laki', 'Perempuan'], true)) {
         $error = 'Jenis kelamin yang dipilih tidak valid.';
+
     } elseif (!in_array($status_aktif, ['0', '1'], true)) {
-        $error = 'Status siswa yang dipilih tidak valid.';
+        $error = 'Status siswa tidak valid.';
+
     } elseif ($tanggal_lahir > date('Y-m-d')) {
         $error = 'Tanggal lahir tidak boleh melebihi tanggal hari ini.';
+
     } else {
-        // Periksa NISN agar tidak digunakan oleh siswa lain.
-        $cek = mysqli_prepare(
+
+        // Periksa NISN
+        $cek_nisn = mysqli_prepare(
             $koneksi,
             "SELECT id FROM t_siswa WHERE nisn = ? LIMIT 1"
         );
 
-        if (!$cek) {
-            $error = 'Gagal memeriksa data NISN.';
-        } else {
-            mysqli_stmt_bind_param($cek, "s", $nisn);
-            mysqli_stmt_execute($cek);
-            $hasil_cek = mysqli_stmt_get_result($cek);
+        mysqli_stmt_bind_param($cek_nisn, 's', $nisn);
+        mysqli_stmt_execute($cek_nisn);
+        mysqli_stmt_store_result($cek_nisn);
 
-            if (mysqli_num_rows($hasil_cek) > 0) {
-                $error = 'NISN sudah terdaftar. Gunakan NISN yang berbeda.';
-            }
-
-            mysqli_stmt_close($cek);
+        if (mysqli_stmt_num_rows($cek_nisn) > 0) {
+            $error = 'NISN sudah terdaftar. Gunakan NISN yang berbeda.';
         }
 
-        // Periksa NIS jika diisi.
+        mysqli_stmt_close($cek_nisn);
+
+        // Periksa NIS jika diisi
         if ($error === '' && $nis !== '') {
             $cek_nis = mysqli_prepare(
                 $koneksi,
                 "SELECT id FROM t_siswa WHERE nis = ? LIMIT 1"
             );
 
-            if (!$cek_nis) {
-                $error = 'Gagal memeriksa data NIS.';
-            } else {
-                mysqli_stmt_bind_param($cek_nis, "s", $nis);
-                mysqli_stmt_execute($cek_nis);
-                $hasil_nis = mysqli_stmt_get_result($cek_nis);
+            mysqli_stmt_bind_param($cek_nis, 's', $nis);
+            mysqli_stmt_execute($cek_nis);
+            mysqli_stmt_store_result($cek_nis);
 
-                if (mysqli_num_rows($hasil_nis) > 0) {
-                    $error = 'NIS sudah digunakan. Gunakan NIS yang berbeda.';
-                }
-
-                mysqli_stmt_close($cek_nis);
+            if (mysqli_stmt_num_rows($cek_nis) > 0) {
+                $error = 'NIS sudah digunakan. Gunakan NIS yang berbeda.';
             }
+
+            mysqli_stmt_close($cek_nis);
         }
 
+        // Simpan data siswa
         if ($error === '') {
+
             $status = (int) $status_aktif;
 
             $stmt = mysqli_prepare(
                 $koneksi,
                 "INSERT INTO t_siswa
-                (
-                    nis,
-                    nisn,
-                    nama,
-                    jenis_kelamin,
-                    tanggal_lahir,
-                    alamat,
-                    status_aktif
-                )
+                (nis, nisn, nama, jenis_kelamin, tanggal_lahir, alamat, status_aktif)
                 VALUES (?, ?, ?, ?, ?, ?, ?)"
             );
 
-            if ($stmt) {
+            if (!$stmt) {
+                $error = 'Gagal menyiapkan data siswa.';
+            } else {
                 mysqli_stmt_bind_param(
                     $stmt,
-                    "ssssssi",
+                    'ssssssi',
                     $nis,
                     $nisn,
                     $nama,
@@ -112,23 +113,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $status
                 );
 
-                if (mysqli_stmt_execute($stmt)) {
-                    mysqli_stmt_close($stmt);
-
-                    header('Location: kelola_siswa.php');
-                    exit;
-                } else {
+                if (!mysqli_stmt_execute($stmt)) {
                     $error = 'Gagal menyimpan data siswa.';
+                } else {
+                    header('Location: kelola_siswa.php?pesan=sukses');
+                    exit;
                 }
 
                 mysqli_stmt_close($stmt);
-            } else {
-                $error = 'Terjadi kesalahan saat menyiapkan query.';
             }
         }
     }
 }
 
+// Fungsi keamanan output
 function e($nilai)
 {
     return htmlspecialchars(
@@ -141,6 +139,7 @@ function e($nilai)
 
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -151,13 +150,15 @@ function e($nilai)
         rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
     >
- <style>
+
+    <style>
         body {
             background: #f4f6f9;
             font-family: Arial, sans-serif;
             margin: 0;
         }
 
+        /* SIDEBAR */
         .sidebar {
             background: #172554;
             color: white;
@@ -192,6 +193,7 @@ function e($nilai)
             color: #fca5a5;
         }
 
+        /* KONTEN */
         .content {
             padding: 28px;
         }
@@ -202,6 +204,11 @@ function e($nilai)
             margin-bottom: 8px;
         }
 
+        .page-description {
+            color: #64748b;
+            margin-bottom: 20px;
+        }
+
         .card-main {
             background: white;
             border: none;
@@ -209,37 +216,41 @@ function e($nilai)
             box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
         }
 
-        .table thead th {
-            background: #172554;
-            color: white;
-            white-space: nowrap;
-            vertical-align: middle;
+        /* FORM */
+        .form-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
+            margin-top: 20px;
         }
 
-        .table td {
-            vertical-align: middle;
+        .form-card h5 {
+            color: #172554;
+            font-weight: bold;
+            margin-bottom: 8px;
         }
 
-        .table-responsive {
-            overflow-x: auto;
+        .subtitle {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 25px;
         }
 
-        .badge-status {
-            padding: 7px 10px;
-            border-radius: 5px;
-            display: inline-block;
+        .required {
+            color: red;
         }
 
-        .status-aktif {
-            background: #d1fae5;
-            color: #065f46;
+        .form-control {
+            border-radius: 6px;
+            min-height: 40px;
         }
 
-        .status-nonaktif {
-            background: #fee2e2;
-            color: #991b1b;
+        .form-actions {
+            margin-top: 25px;
         }
 
+        /* TOMBOL */
         .btn-primary {
             background: #3157d5;
             border-color: #3157d5;
@@ -250,26 +261,10 @@ function e($nilai)
             border-color: #2445b8;
         }
 
-        .dataTables_wrapper {
-            padding-top: 8px;
-        }
-
-        .dataTables_filter input,
-        .dataTables_length select {
-            border: 1px solid #ced4da;
-            border-radius: 5px;
-            padding: 5px 8px;
-        }
-
-        .dataTables_info {
+        footer {
             color: #64748b;
             font-size: 13px;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 5px;
-            white-space: nowrap;
+            margin-top: 30px;
         }
 
         @media (max-width: 767px) {
@@ -279,11 +274,6 @@ function e($nilai)
 
             .content {
                 padding: 15px;
-            }
-
-            .sidebar .nav {
-                display: flex;
-                flex-direction: column;
             }
         }
     </style>
@@ -296,6 +286,7 @@ function e($nilai)
 
         <!-- SIDEBAR -->
         <aside class="col-md-3 col-lg-2 sidebar">
+
             <h4>My Website</h4>
 
             <ul class="nav nav-pills flex-column">
@@ -308,13 +299,13 @@ function e($nilai)
 
                 <li class="nav-item">
                     <a href="kelola_siswa.php" class="nav-link active">
-                         ♟ Data Siswa
+                        ♟ Data Siswa
                     </a>
                 </li>
 
                 <li class="nav-item">
                     <a href="kelola_guru.php" class="nav-link">
-                         ♟ Data Guru
+                        ♟ Data Guru
                     </a>
                 </li>
 
@@ -357,7 +348,8 @@ function e($nilai)
                 <hr style="border-color: #475569;">
 
                 <li class="nav-item">
-                    <a href="logout.php" class="nav-link logout"
+                    <a href="logout.php"
+                       class="nav-link logout"
                        onclick="return confirm('Yakin ingin logout?')">
                         &#10140; Logout
                     </a>
@@ -375,6 +367,7 @@ function e($nilai)
                 Tambahkan data siswa baru ke dalam sistem.
             </p>
 
+            <!-- PESAN ERROR -->
             <?php if ($error !== '') { ?>
                 <div class="alert alert-danger alert-dismissible fade show">
                     <?= e($error) ?>
@@ -390,20 +383,25 @@ function e($nilai)
                 </div>
             <?php } ?>
 
+            <!-- FORM CARD -->
             <div class="form-card">
 
                 <h5>Formulir Data Siswa</h5>
 
                 <p class="subtitle">
                     Lengkapi informasi siswa pada kolom berikut.
-                    Kolom bertanda <span class="required">*</span> wajib diisi.
+                    Kolom bertanda
+                    <span class="required">*</span>
+                    wajib diisi.
                 </p>
 
                 <form method="POST" action="">
 
                     <!-- NIS -->
                     <div class="form-group">
-                        <label for="nis">NIS</label>
+                        <label for="nis">
+                            NIS
+                        </label>
 
                         <input
                             type="text"
@@ -415,7 +413,7 @@ function e($nilai)
                             maxlength="10"
                         >
 
-                        <small class="form-text">
+                        <small class="form-text text-muted">
                             NIS boleh dikosongkan jika belum tersedia.
                         </small>
                     </div>
@@ -470,19 +468,13 @@ function e($nilai)
                         >
                             <option value="">-- Pilih Jenis Kelamin --</option>
 
-                            <option
-                                value="Laki-laki"
-                                <?= $jenis_kelamin === 'Laki-laki'
-                                    ? 'selected' : '' ?>
-                            >
+                            <option value="Laki-laki"
+                                <?= $jenis_kelamin === 'Laki-laki' ? 'selected' : '' ?>>
                                 Laki-laki
                             </option>
 
-                            <option
-                                value="Perempuan"
-                                <?= $jenis_kelamin === 'Perempuan'
-                                    ? 'selected' : '' ?>
-                            >
+                            <option value="Perempuan"
+                                <?= $jenis_kelamin === 'Perempuan' ? 'selected' : '' ?>>
                                 Perempuan
                             </option>
                         </select>
@@ -530,17 +522,13 @@ function e($nilai)
                             class="form-control"
                             required
                         >
-                            <option
-                                value="1"
-                                <?= $status_aktif === '1' ? 'selected' : '' ?>
-                            >
+                            <option value="1"
+                                <?= $status_aktif === '1' ? 'selected' : '' ?>>
                                 Aktif
                             </option>
 
-                            <option
-                                value="0"
-                                <?= $status_aktif === '0' ? 'selected' : '' ?>
-                            >
+                            <option value="0"
+                                <?= $status_aktif === '0' ? 'selected' : '' ?>>
                                 Tidak Aktif
                             </option>
                         </select>
