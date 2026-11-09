@@ -60,6 +60,13 @@ $totalPelanggaran = hitungData($koneksi, 't_pelanggaran_siswa');
             padding: 22px 15px;
         }
 
+        .sidebar-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 30px;
+            padding: 0 10px;
+        }
+
         .sidebar h4 {
             font-weight: bold;
             margin-bottom: 30px;
@@ -353,6 +360,9 @@ $totalPelanggaran = hitungData($koneksi, 't_pelanggaran_siswa');
     <div class="row">
 
         <!-- SIDEBAR -->
+<?php if (($_SESSION['role'] ?? '') === 'guru'): ?>
+        <?php $menu_aktif = 'Dashboard'; include 'includes/crud_sidebar.php'; ?>
+        <?php else: ?>
         <aside class="col-md-3 col-lg-2 sidebar">
 
              <h4>My Website</h4>
@@ -404,6 +414,7 @@ $totalPelanggaran = hitungData($koneksi, 't_pelanggaran_siswa');
 
             </nav>
         </aside>
+        <?php endif; ?>
 
         <!-- KONTEN DASHBOARD -->
         <main class="col-md-9 col-lg-10 main-content">
@@ -503,6 +514,65 @@ $totalPelanggaran = hitungData($koneksi, 't_pelanggaran_siswa');
 
             </div>
 
+            <?php if (($_SESSION['role'] ?? '') === 'guru'): ?>
+            <!-- MENU CEPAT GURU -->
+            <div class="section-card">
+                <h5 class="section-title">Menu Guru</h5>
+
+                <div class="row g-3">
+
+                    <div class="col-md-6 col-xl-4">
+                        <a href="catatan_pelanggaran.php" class="quick-link">
+                            <div class="quick-icon">✎</div>
+                            <h6>Catatan Pelanggaran</h6>
+                            <p>Catat pelanggaran yang dilakukan siswa.</p>
+                        </a>
+                    </div>
+
+                    <div class="col-md-6 col-xl-4">
+                        <a href="tindakan.php" class="quick-link">
+                            <div class="quick-icon">⚑</div>
+                            <h6>Tindakan</h6>
+                            <p>Isi tindakan dan ubah status penanganan.</p>
+                        </a>
+                    </div>
+
+                    <div class="col-md-6 col-xl-4">
+                        <a href="riwayat_pelanggaran.php" class="quick-link">
+                            <div class="quick-icon">☰</div>
+                            <h6>Riwayat Pelanggaran</h6>
+                            <p>Lihat seluruh riwayat pelanggaran siswa.</p>
+                        </a>
+                    </div>
+
+                    <div class="col-md-6 col-xl-4">
+                        <a href="laporan.php" class="quick-link">
+                            <div class="quick-icon">▤</div>
+                            <h6>Laporan</h6>
+                            <p>Laporan data siswa per kelas dan tahun ajaran.</p>
+                        </a>
+                    </div>
+
+                    <div class="col-md-6 col-xl-4">
+                        <a href="rekap_point.php" class="quick-link">
+                            <div class="quick-icon">★</div>
+                            <h6>Rekap Poin</h6>
+                            <p>Total poin pelanggaran setiap siswa.</p>
+                        </a>
+                    </div>
+
+                    <div class="col-md-6 col-xl-4">
+                        <a href="tentang_saya.php" class="quick-link">
+                            <div class="quick-icon">ℹ</div>
+                            <h6>About Me</h6>
+                            <p>Informasi tentang pembuat aplikasi.</p>
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+
+            <?php else: ?>
             <!-- MENU CEPAT -->
             <div class="section-card">
                 <h5 class="section-title">Menu Pengelolaan</h5>
@@ -567,6 +637,7 @@ $totalPelanggaran = hitungData($koneksi, 't_pelanggaran_siswa');
 
                 </div>
             </div>
+            <?php endif; ?>
 
             <p class="footer-text">
                 Sistem Informasi Pelanggaran Siswa &copy; 2026

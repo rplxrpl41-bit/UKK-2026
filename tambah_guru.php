@@ -4,8 +4,9 @@ session_start();
 include 'includes/cek_session.php';
 include 'config/koneksi.php';
 
-// Hanya admin yang boleh mengelola guru
+// Hanya admin yang boleh menambahkan guru
 if (($_SESSION['role'] ?? '') !== 'admin') {
+    http_response_code(403);
     die('Akses ditolak!');
 }
 
@@ -14,84 +15,144 @@ $error = '';
 $nip = '';
 $nama = '';
 $email = '';
-$user_id = '';
 $status_aktif = '1';
-
-// Ambil akun guru
-$users = mysqli_query(
-    $koneksi,
-    "SELECT id, name, email, role
-     FROM t_users
-     WHERE role = 'guru'
-     ORDER BY name ASC"
-);
-
-if (!$users) {
-    die('Gagal mengambil akun pengguna.');
-}
 
 // Proses simpan data
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
     $nip = trim($_POST['nip'] ?? '');
     $nama = trim($_POST['nama'] ?? '');
     $email = trim($_POST['email'] ?? '');
-    $user_id = (int) ($_POST['user_id'] ?? 0);
+    $password = $_POST['password'] ?? '';
+    $konfirmasi_password = $_POST['konfirmasi_password'] ?? '';
     $status_aktif = (string) ($_POST['status_aktif'] ?? '1');
 
-    if ($nip === '' || $nama === '' || $email === '') {
-        $error = 'NIP, nama, dan email wajib diisi.';
+    // Validasi
+    if (
+        $nip === '' ||
+        $nama === '' ||
+        $email === '' ||
+        $password === '' ||
+        $konfirmasi_password === ''
+    ) {
+        $error = 'Semua kolom wajib diisi.';
+
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error = 'Format email tidak valid.';
+
+    } elseif (strlen($password) < 8) {
+        $error = 'Password minimal 8 karakter.';
+
+    } elseif ($password !== $konfirmasi_password) {
+        $error = 'Konfirmasi password tidak cocok.';
+
     } elseif (!in_array($status_aktif, ['0', '1'], true)) {
         $error = 'Status guru tidak valid.';
-    } elseif ($user_id <= 0) {
-        $error = 'Silakan pilih akun pengguna.';
+
     } else {
-        // Periksa akun pengguna
-        $cek_user = mysqli_prepare(
+
+        // Periksa NIP
+        $cek_nip = mysqli_prepare(
             $koneksi,
-            "SELECT id FROM t_users
-             WHERE id = ? AND role = 'guru'
-             LIMIT 1"
+            "SELECT id FROM t_guru WHERE nip = ? LIMIT 1"
         );
 
-        if (!$cek_user) {
-            $error = 'Gagal memeriksa akun pengguna.';
-        } else {
-            mysqli_stmt_bind_param(
-                $cek_user,
-                'i',
-                $user_id
-            );
+        mysqli_stmt_bind_param($cek_nip, 's', $nip);
+        mysqli_stmt_execute($cek_nip);
+        mysqli_stmt_store_result($cek_nip);
 
-            mysqli_stmt_execute($cek_user);
-            mysqli_stmt_store_result($cek_user);
-
-            $user_ada = mysqli_stmt_num_rows($cek_user) > 0;
-
-            mysqli_stmt_close($cek_user);
-
-            if (!$user_ada) {
-                $error = 'Akun guru tidak ditemukan.';
-            }
+        if (mysqli_stmt_num_rows($cek_nip) > 0) {
+            $error = 'NIP sudah digunakan.';
         }
 
-        // Simpan data guru
-        if ($error === '') {
-            $status = (int) $status_aktif;
+        mysqli_stmt_close($cek_nip);
 
-            $stmt = mysqli_prepare(
+        // Periksa email di tabel users dan guru
+        if ($error === '') {
+
+            $cek_email = mysqli_prepare(
                 $koneksi,
-                "INSERT INTO t_guru
-                 (nip, nama, email, status_aktif, user_id)
-                 VALUES (?, ?, ?, ?, ?)"
+                "SELECT id FROM t_users WHERE email = ?
+                 UNION
+                 SELECT id FROM t_guru WHERE email = ?
+                 LIMIT 1"
             );
 
-            if (!$stmt) {
-                $error = 'Gagal menyiapkan query.';
-            } else {
+            mysqli_stmt_bind_param(
+                $cek_email,
+                'ss',
+                $email,
+                $email
+            );
+
+            mysqli_stmt_execute($cek_email);
+            mysqli_stmt_store_result($cek_email);
+
+            if (mysqli_stmt_num_rows($cek_email) > 0) {
+                $error = 'Email sudah digunakan.';
+            }
+
+            mysqli_stmt_close($cek_email);
+        }
+
+        // Simpan akun dan data guru
+        if ($error === '') {
+
+            mysqli_begin_transaction($koneksi);
+
+            try {
+
+                // Enkripsi password
+                $password_hash = password_hash(
+                    $password,
+                    PASSWORD_DEFAULT
+                );
+
+                $status = (int) $status_aktif;
+
+                // 1. Simpan akun ke t_users
+                $stmt_user = mysqli_prepare(
+                    $koneksi,
+                    "INSERT INTO t_users
+                    (name, email, password, role)
+                    VALUES (?, ?, ?, 'guru')"
+                );
+
+                if (!$stmt_user) {
+                    throw new Exception('Gagal menyiapkan akun pengguna.');
+                }
+
                 mysqli_stmt_bind_param(
-                    $stmt,
+                    $stmt_user,
+                    'sss',
+                    $nama,
+                    $email,
+                    $password_hash
+                );
+
+                if (!mysqli_stmt_execute($stmt_user)) {
+                    throw new Exception('Gagal membuat akun guru.');
+                }
+
+                // Ambil ID akun yang baru dibuat
+                $user_id = mysqli_insert_id($koneksi);
+
+                mysqli_stmt_close($stmt_user);
+
+                // 2. Simpan data ke t_guru
+                $stmt_guru = mysqli_prepare(
+                    $koneksi,
+                    "INSERT INTO t_guru
+                    (nip, nama, email, status_aktif, user_id)
+                    VALUES (?, ?, ?, ?, ?)"
+                );
+
+                if (!$stmt_guru) {
+                    throw new Exception('Gagal menyiapkan data guru.');
+                }
+
+                mysqli_stmt_bind_param(
+                    $stmt_guru,
                     'sssii',
                     $nip,
                     $nama,
@@ -100,22 +161,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $user_id
                 );
 
-                if (mysqli_stmt_execute($stmt)) {
-                    mysqli_stmt_close($stmt);
-
-                    header(
-                        'Location: kelola_guru.php?pesan=sukses'
-                    );
-                    exit;
-                } else {
-                    if (mysqli_stmt_errno($stmt) === 1062) {
-                        $error = 'NIP, email, atau akun guru sudah digunakan.';
-                    } else {
-                        $error = 'Gagal menyimpan data guru.';
-                    }
+                if (!mysqli_stmt_execute($stmt_guru)) {
+                    throw new Exception('Gagal menyimpan data guru.');
                 }
 
-                mysqli_stmt_close($stmt);
+                mysqli_stmt_close($stmt_guru);
+
+                // Simpan transaksi
+                mysqli_commit($koneksi);
+
+                header('Location: kelola_guru.php?pesan=sukses');
+                exit;
+
+            } catch (Exception $e) {
+
+                mysqli_rollback($koneksi);
+
+                $error = $e->getMessage();
             }
         }
     }
@@ -153,7 +215,7 @@ function e($nilai)
             margin: 0;
         }
 
-        /* SIDEBAR SAMA SEPERTI KELOLA SISWA */
+        /* SIDEBAR */
         .sidebar {
             background: #172554;
             color: white;
@@ -206,20 +268,38 @@ function e($nilai)
             box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
         }
 
-        /* TABEL */
-        .table thead th {
-            background: #172554;
-            color: white;
-            white-space: nowrap;
-            vertical-align: middle;
+        /* FORM */
+        .form-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
+            margin-top: 20px;
         }
 
-        .table td {
-            vertical-align: middle;
+        .form-card h5 {
+            color: #172554;
+            font-weight: bold;
+            margin-bottom: 8px;
         }
 
-        .table-responsive {
-            overflow-x: auto;
+        .subtitle {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+        .required {
+            color: red;
+        }
+
+        .form-control {
+            border-radius: 6px;
+            min-height: 40px;
+        }
+
+        .form-actions {
+            margin-top: 25px;
         }
 
         /* TOMBOL */
@@ -233,54 +313,10 @@ function e($nilai)
             border-color: #2445b8;
         }
 
-        .action-buttons {
-            display: flex;
-            gap: 5px;
-            white-space: nowrap;
-        }
-
-        /* STATUS */
-        .badge-status {
-            padding: 7px 10px;
-            border-radius: 5px;
-            display: inline-block;
-            font-size: 12px;
-        }
-
-        .status-aktif {
-            background: #d1fae5;
-            color: #065f46;
-        }
-
-        .status-nonaktif {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        /* DATATABLES */
-        .dataTables_wrapper {
-            padding-top: 8px;
-        }
-
-        .dataTables_filter input,
-        .dataTables_length select {
-            border: 1px solid #ced4da;
-            border-radius: 5px;
-            padding: 5px 8px;
-        }
-
-        .dataTables_info {
+        footer {
             color: #64748b;
             font-size: 13px;
-        }
-
-        .page-item.active .page-link {
-            background: #3157d5;
-            border-color: #3157d5;
-        }
-
-        .page-link {
-            color: #3157d5;
+            margin-top: 30px;
         }
 
         @media (max-width: 767px) {
@@ -315,13 +351,13 @@ function e($nilai)
 
                 <li class="nav-item">
                     <a href="kelola_siswa.php" class="nav-link">
-                       ♟ Data Siswa
+                        ♟ Data Siswa
                     </a>
                 </li>
 
                 <li class="nav-item">
                     <a href="kelola_guru.php" class="nav-link active">
-                     ♟ Data Guru
+                        ♟ Data Guru
                     </a>
                 </li>
 
@@ -373,6 +409,7 @@ function e($nilai)
 
             </ul>
         </aside>
+
         <!-- KONTEN UTAMA -->
         <main class="col-md-9 col-lg-10 content">
 
@@ -467,43 +504,43 @@ function e($nilai)
                         >
                     </div>
 
-                    <!-- AKUN PENGGUNA -->
+                    <!-- PASSWORD -->
                     <div class="form-group">
-                        <label for="user_id">
-                            Akun Pengguna
+                        <label for="password">
+                            Password <span class="required">*</span>
+                        </label>
+
+                        <input
+                            type="password"
+                            name="password"
+                            id="password"
+                            class="form-control"
+                            placeholder="Masukkan password minimal 8 karakter"
+                            minlength="8"
+                            required
+                        >
+
+                        <small class="form-text text-muted">
+                            Password minimal 8 karakter.
+                        </small>
+                    </div>
+
+                    <!-- KONFIRMASI PASSWORD -->
+                    <div class="form-group">
+                        <label for="konfirmasi_password">
+                            Konfirmasi Password
                             <span class="required">*</span>
                         </label>
 
-                        <select
-                            name="user_id"
-                            id="user_id"
+                        <input
+                            type="password"
+                            name="konfirmasi_password"
+                            id="konfirmasi_password"
                             class="form-control"
+                            placeholder="Masukkan ulang password"
+                            minlength="8"
                             required
                         >
-                            <option value="">
-                                -- Pilih akun pengguna --
-                            </option>
-
-                            <?php
-                            mysqli_data_seek($users, 0);
-
-                            while ($user = mysqli_fetch_assoc($users)) {
-                            ?>
-                                <option
-                                    value="<?= (int) $user['id'] ?>"
-                                    <?= (string) $user_id ===
-                                        (string) $user['id']
-                                        ? 'selected' : '' ?>
-                                >
-                                    <?= e($user['name']) ?>
-                                    (<?= e($user['email'] ?? '-') ?>)
-                                </option>
-                            <?php } ?>
-                        </select>
-
-                        <small class="form-text">
-                            Pilih akun pengguna yang memiliki role guru.
-                        </small>
                     </div>
 
                     <!-- STATUS -->
@@ -518,19 +555,13 @@ function e($nilai)
                             class="form-control"
                             required
                         >
-                            <option
-                                value="1"
-                                <?= $status_aktif === '1'
-                                    ? 'selected' : '' ?>
-                            >
+                            <option value="1"
+                                <?= $status_aktif === '1' ? 'selected' : '' ?>>
                                 Aktif
                             </option>
 
-                            <option
-                                value="0"
-                                <?= $status_aktif === '0'
-                                    ? 'selected' : '' ?>
-                            >
+                            <option value="0"
+                                <?= $status_aktif === '0' ? 'selected' : '' ?>>
                                 Tidak Aktif
                             </option>
                         </select>

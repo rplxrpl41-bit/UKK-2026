@@ -48,109 +48,119 @@ if (!$query_laporan) {
     die("Gagal mengambil laporan: " . mysqli_error($koneksi));
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Laporan Penempatan Siswa</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style><?php include 'includes/crud_style.php'; ?></style>
+    <style>
+        .content-card { max-width: none; }
+        @media print {
+            .sidebar, .no-print { display: none !important; }
+            .main-content { width: 100% !important; flex: 0 0 100% !important; max-width: 100% !important; }
+        }
+    </style>
 </head>
 <body>
-<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.3/dist/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
 
-    <h2>Laporan Penempatan Siswa</h2>
-    <p>Laporan data siswa berdasarkan kelas dan tahun ajaran.</p>
+<div class="container-fluid">
+    <div class="row">
 
-    <a href="dashboard.php">Kembali ke Dashboard</a>
+        <?php $menu_aktif = 'Laporan'; include 'includes/crud_sidebar.php'; ?>
 
-    <br><br>
+        <main class="col-md-9 col-lg-10 main-content">
 
-    <form method="GET" action="laporan.php">
-        <label>Tahun Ajaran:</label>
+            <h1 class="page-title">Laporan Penempatan Siswa</h1>
+            <p class="page-description">Laporan data siswa berdasarkan kelas dan tahun ajaran.</p>
 
-        <select name="tahun_ajaran_id">
-            <option value="0">Semua Tahun Ajaran</option>
+            <div class="content-card">
 
-            <?php while ($ta = mysqli_fetch_assoc($query_tahun)) { ?>
-                <option
-                    value="<?= (int) $ta['id'] ?>"
-                    <?= $tahun_ajaran_id == $ta['id'] ? 'selected' : '' ?>
-                >
-                    <?= htmlspecialchars($ta['nama']) ?>
-                </option>
-            <?php } ?>
-        </select>
+                <form method="GET" action="laporan.php" class="row g-2 mb-3 no-print">
+                    <div class="col-md-4">
+                        <label class="form-label">Tahun Ajaran</label>
+                        <select name="tahun_ajaran_id" class="form-select">
+                            <option value="0">Semua Tahun Ajaran</option>
+                            <?php while ($ta = mysqli_fetch_assoc($query_tahun)) { ?>
+                                <option value="<?= (int) $ta['id'] ?>"
+                                    <?= $tahun_ajaran_id == $ta['id'] ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($ta['nama']) ?>
+                                </option>
+                            <?php } ?>
+                        </select>
+                    </div>
 
-        <label>Kelas:</label>
+                    <div class="col-md-4">
+                        <label class="form-label">Kelas</label>
+                        <select name="kelas_id" class="form-select">
+                            <option value="0">Semua Kelas</option>
+                            <?php while ($kelas = mysqli_fetch_assoc($query_kelas)) { ?>
+                                <option value="<?= (int) $kelas['id'] ?>"
+                                    <?= $kelas_id == $kelas['id'] ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($kelas['nama'] . ' - ' . $kelas['tingkat'] . ' - ' . $kelas['jurusan']) ?>
+                                </option>
+                            <?php } ?>
+                        </select>
+                    </div>
 
-        <select name="kelas_id">
-            <option value="0">Semua Kelas</option>
+                    <div class="col-md-4 d-flex gap-2 align-items-end">
+                        <button type="submit" class="btn btn-primary">Tampilkan</button>
+                        <button type="button" class="btn btn-outline-dark" onclick="window.print()">Cetak Laporan</button>
+                    </div>
+                </form>
 
-            <?php while ($kelas = mysqli_fetch_assoc($query_kelas)) { ?>
-                <option
-                    value="<?= (int) $kelas['id'] ?>"
-                    <?= $kelas_id == $kelas['id'] ? 'selected' : '' ?>
-                >
-                    <?= htmlspecialchars(
-                        $kelas['nama'] . ' - ' .
-                        $kelas['tingkat'] . ' - ' .
-                        $kelas['jurusan']
-                    ) ?>
-                </option>
-            <?php } ?>
-        </select>
+                <h5 class="mb-3">Data Penempatan Siswa</h5>
 
-        <button type="submit">Tampilkan</button>
-        <button type="button" onclick="window.print()">Cetak Laporan</button>
-    </form>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped table-hover align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>No</th>
+                                <th>NIS</th>
+                                <th>Nama Siswa</th>
+                                <th>Kelas</th>
+                                <th>Tingkat</th>
+                                <th>Jurusan</th>
+                                <th>Tahun Ajaran</th>
+                            </tr>
+                        </thead>
 
-    <br>
+                        <tbody>
+                            <?php
+                            $no = 1;
 
-    <h3>Data Penempatan Siswa</h3>
+                            if (mysqli_num_rows($query_laporan) > 0) {
+                                while ($row = mysqli_fetch_assoc($query_laporan)) {
+                            ?>
+                                <tr>
+                                    <td><?= $no++ ?></td>
+                                    <td><?= htmlspecialchars($row['nis']) ?></td>
+                                    <td><?= htmlspecialchars($row['nama_siswa']) ?></td>
+                                    <td><?= htmlspecialchars($row['nama_kelas']) ?></td>
+                                    <td><?= htmlspecialchars($row['tingkat']) ?></td>
+                                    <td><?= htmlspecialchars($row['jurusan']) ?></td>
+                                    <td><?= htmlspecialchars($row['tahun_ajaran']) ?></td>
+                                </tr>
+                            <?php
+                                }
+                            } else {
+                            ?>
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted">Tidak ada data penempatan siswa.</td>
+                                </tr>
+                            <?php } ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
-    <table border="1" cellpadding="8" cellspacing="0" width="100%">
-        <thead>
-            <tr>
-                <th>No</th>
-                <th>NIS</th>
-                <th>Nama Siswa</th>
-                <th>Kelas</th>
-                <th>Tingkat</th>
-                <th>Jurusan</th>
-                <th>Tahun Ajaran</th>
-            </tr>
-        </thead>
+        </main>
+    </div>
+</div>
 
-        <tbody>
-            <?php
-            $no = 1;
-
-            if (mysqli_num_rows($query_laporan) > 0) {
-                while ($row = mysqli_fetch_assoc($query_laporan)) {
-            ?>
-                <tr>
-                    <td><?= $no++ ?></td>
-                    <td><?= htmlspecialchars($row['nis']) ?></td>
-                    <td><?= htmlspecialchars($row['nama_siswa']) ?></td>
-                    <td><?= htmlspecialchars($row['nama_kelas']) ?></td>
-                    <td><?= htmlspecialchars($row['tingkat']) ?></td>
-                    <td><?= htmlspecialchars($row['jurusan']) ?></td>
-                    <td><?= htmlspecialchars($row['tahun_ajaran']) ?></td>
-                </tr>
-            <?php
-                }
-            } else {
-            ?>
-                <tr>
-                    <td colspan="7">Tidak ada data penempatan siswa.</td>
-                </tr>
-            <?php } ?>
-        </tbody>
-    </table>
-
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

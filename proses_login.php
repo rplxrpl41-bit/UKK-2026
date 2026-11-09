@@ -6,11 +6,13 @@ include 'config/koneksi.php';
 
 if (isset($_POST['login'])) {
 
-    $email = $_POST['email'];
-    $password = $_POST['password'];
+    $email = trim($_POST['email'] ?? '');
+    $password = $_POST['password'] ?? '';
 
-    $sql = "SELECT * FROM t_users WHERE email='$email'";
-    $hasil = mysqli_query($koneksi, $sql);
+    $stmt = mysqli_prepare($koneksi, "SELECT * FROM t_users WHERE email = ?");
+    mysqli_stmt_bind_param($stmt, "s", $email);
+    mysqli_stmt_execute($stmt);
+    $hasil = mysqli_stmt_get_result($stmt);
 
     if (mysqli_num_rows($hasil) > 0) {
 
@@ -21,6 +23,7 @@ if (isset($_POST['login'])) {
             // Simpan data user ke session
             $_SESSION['login']=true;
             $_SESSION['id'] = $user['id'];
+            $_SESSION['user_id'] = $user['id']; // dipakai halaman lama (menu1-4, cek_akses.php)
             $_SESSION['name'] = $user['name'];
             $_SESSION['email'] = $user['email'];
             $_SESSION['role'] = $user['role'];

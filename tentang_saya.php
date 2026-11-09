@@ -140,6 +140,9 @@ include 'includes/cek_session.php';
     <div class="row">
 
         <!-- SIDEBAR -->
+<?php if (($_SESSION['role'] ?? '') === 'guru'): ?>
+        <?php $menu_aktif = 'About Me'; include 'includes/crud_sidebar.php'; ?>
+        <?php else: ?>
         <aside class="col-md-3 col-lg-2 sidebar">
 
             <div class="sidebar-title">
@@ -194,6 +197,7 @@ include 'includes/cek_session.php';
 
             </nav>
         </aside>
+        <?php endif; ?>
 
         <!-- KONTEN UTAMA -->
         <main class="col-md-9 col-lg-10 main-content">

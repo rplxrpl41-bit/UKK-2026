@@ -15,7 +15,7 @@ if ($aksi === 'hapus') {
 
     if ($id <= 0) {
         $_SESSION['pesan'] = "ID pelanggaran tidak valid!";
-        header("Location: catatan_pelanggaran.php");
+        header("Location: kelola_pelanggaran.php");
         exit;
     }
 
@@ -31,7 +31,7 @@ if ($aksi === 'hapus') {
         $error = mysqli_stmt_error($stmt);
         mysqli_stmt_close($stmt);
         $_SESSION['pesan'] = "Gagal menghapus pelanggaran: " . $error;
-        header("Location: catatan_pelanggaran.php");
+        header("Location: kelola_pelanggaran.php");
         exit;
     }
 
@@ -42,12 +42,12 @@ if ($aksi === 'hapus') {
         ? "Data pelanggaran berhasil dihapus!"
         : "Data pelanggaran tidak ditemukan.";
 
-    header("Location: catatan_pelanggaran.php?pesan=hapus_berhasil");
+    header("Location: kelola_pelanggaran.php?pesan=hapus_berhasil");
     exit;
 }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header("Location: catatan_pelanggaran.php");
+    header("Location: kelola_pelanggaran.php");
     exit;
 }
 
@@ -67,7 +67,7 @@ if (
     !in_array($status_aktif, ['0', '1'], true)
 ) {
     $_SESSION['pesan'] = "Data pelanggaran tidak lengkap atau tidak valid!";
-    header("Location: " . ($aksi === 'edit' ? "edit_pelanggaran.php?id=$id" : "catatan_pelanggaran.php"));
+    header("Location: " . ($aksi === 'edit' ? "edit_pelanggaran.php?id=$id" : "kelola_pelanggaran.php"));
     exit;
 }
 
@@ -76,7 +76,7 @@ $status = (int) $status_aktif;
 if ($aksi === 'edit') {
     if ($id <= 0) {
         $_SESSION['pesan'] = "ID pelanggaran tidak valid!";
-        header("Location: catatan_pelanggaran.php");
+        header("Location: kelola_pelanggaran.php");
         exit;
     }
 
@@ -132,7 +132,7 @@ if (!mysqli_stmt_execute($stmt)) {
     $error = mysqli_stmt_error($stmt);
     mysqli_stmt_close($stmt);
     $_SESSION['pesan'] = "Gagal menyimpan pelanggaran: " . $error;
-    header("Location: " . ($aksi === 'edit' ? "edit_pelanggaran.php?id=$id" : "catatan_pelanggaran.php"));
+    header("Location: " . ($aksi === 'edit' ? "edit_pelanggaran.php?id=$id" : "kelola_pelanggaran.php"));
     exit;
 }
 
@@ -141,6 +141,6 @@ $_SESSION['pesan'] = $aksi === 'edit'
     ? "Data pelanggaran berhasil diperbarui!"
     : "Data pelanggaran berhasil ditambahkan!";
 
-header("Location: catatan_pelanggaran.php?pesan=berhasil");
+header("Location: kelola_pelanggaran.php?pesan=berhasil");
 exit;
 ?>

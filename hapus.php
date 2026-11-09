@@ -35,7 +35,7 @@ $daftar_tabel = [
     ],
     'pelanggaran' => [
         'tabel' => 't_pelanggaran',
-        'halaman' => 'catatan_pelanggaran.php'
+        'halaman' => 'kelola_pelanggaran.php'
     ]
 ];
 
