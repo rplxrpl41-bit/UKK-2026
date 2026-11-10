@@ -1,3 +1,4 @@
+
 <?php
 session_start();
 
@@ -14,10 +15,10 @@ $error = '';
 
 $siswa_id = '';
 $kelas_id = '';
-$tahun_ajaran_id = '';
+$tahun_ajaran_id = 101;
 $tanggal_mulai = date('Y-m-d');
 $tanggal_selesai = '';
-$status_aktif = '1';
+$status_aktif = 1;
 
 // Fungsi keamanan output
 function e($nilai)
@@ -29,7 +30,7 @@ function e($nilai)
     );
 }
 
-// Ambil data pilihan dari database
+// Ambil data siswa
 $querySiswa = mysqli_query(
     $koneksi,
     "SELECT id, nis, nama
@@ -37,22 +38,36 @@ $querySiswa = mysqli_query(
      ORDER BY nama ASC"
 );
 
+// Ambil hanya kelas XII RPL 1 dan XII RPL 2
 $queryKelas = mysqli_query(
     $koneksi,
     "SELECT id, nama, tingkat, jurusan
      FROM t_kelas
-     ORDER BY tingkat, jurusan, nama"
+     WHERE tingkat = 'XII'
+       AND jurusan = 'RPL'
+       AND nama IN ('RPL 1', 'RPL 2')
+     ORDER BY nama ASC"
 );
 
+// Ambil tahun ajaran 2026/2027 yang aktif
 $queryTahun = mysqli_query(
     $koneksi,
     "SELECT id, nama
      FROM t_tahun_ajaran
-     ORDER BY id DESC"
+     WHERE nama = '2026/2027'
+       AND status_aktif = 1
+     LIMIT 1"
 );
 
 if (!$querySiswa || !$queryKelas || !$queryTahun) {
     die("Gagal mengambil data pilihan: " . mysqli_error($koneksi));
+}
+
+// Ambil data tahun ajaran
+$dataTahun = mysqli_fetch_assoc($queryTahun);
+
+if ($dataTahun) {
+    $tahun_ajaran_id = (int) $dataTahun['id'];
 }
 
 // Proses tambah penempatan
@@ -60,7 +75,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $siswa_id = (int) ($_POST['siswa_id'] ?? 0);
     $kelas_id = (int) ($_POST['kelas_id'] ?? 0);
-    $tahun_ajaran_id = (int) ($_POST['tahun_ajaran_id'] ?? 0);
+
+    // Tahun ajaran tidak diambil dari input pengguna
+    // Selalu menggunakan tahun ajaran 2026/2027
+    $tahun_ajaran_id = (int) ($dataTahun['id'] ?? 0);
 
     $tanggal_mulai = trim($_POST['tanggal_mulai'] ?? '');
     $tanggal_selesai = trim($_POST['tanggal_selesai'] ?? '');
@@ -75,22 +93,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $tanggal_mulai === ''
     ) {
         $error = "Semua data wajib diisi kecuali tanggal selesai.";
+
     } elseif (!in_array($status_aktif, [0, 1], true)) {
         $error = "Status penempatan tidak valid.";
+
     } elseif (
         $tanggal_selesai !== '' &&
         $tanggal_selesai < $tanggal_mulai
     ) {
         $error = "Tanggal selesai tidak boleh sebelum tanggal mulai.";
+
     } else {
 
-        // Periksa apakah siswa, kelas, dan tahun ajaran tersedia
+        // Validasi siswa, kelas, dan tahun ajaran
         $stmtValidasi = mysqli_prepare(
             $koneksi,
             "SELECT
                 (SELECT COUNT(*) FROM t_siswa WHERE id = ?) AS siswa,
-                (SELECT COUNT(*) FROM t_kelas WHERE id = ?) AS kelas,
-                (SELECT COUNT(*) FROM t_tahun_ajaran WHERE id = ?) AS tahun"
+
+                (SELECT COUNT(*) FROM t_kelas
+                 WHERE id = ?
+                   AND tingkat = 'XII'
+                   AND jurusan = 'RPL'
+                   AND nama IN ('RPL 1', 'RPL 2')) AS kelas,
+
+                (SELECT COUNT(*) FROM t_tahun_ajaran
+                 WHERE id = ?
+                   AND nama = '2026/2027'
+                   AND status_aktif = 1) AS tahun"
         );
 
         mysqli_stmt_bind_param(
@@ -102,21 +132,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         );
 
         mysqli_stmt_execute($stmtValidasi);
+
         $validasi = mysqli_fetch_assoc(
             mysqli_stmt_get_result($stmtValidasi)
         );
+
         mysqli_stmt_close($stmtValidasi);
 
         if (
             !$validasi ||
-            (int) $validasi['siswa'] === 0 ||
-            (int) $validasi['kelas'] === 0 ||
-            (int) $validasi['tahun'] === 0
+            (int) $validasi['siswa'] === 0
         ) {
-            $error = "Data siswa, kelas, atau tahun ajaran tidak ditemukan.";
+            $error = "Data siswa tidak ditemukan.";
+
+        } elseif ((int) $validasi['kelas'] === 0) {
+            $error = "Kelas tidak valid. Pilih XII RPL 1 atau XII RPL 2.";
+
+        } elseif ((int) $validasi['tahun'] === 0) {
+            $error = "Tahun ajaran 2026/2027 tidak ditemukan atau tidak aktif.";
+
         } else {
 
-            // Cegah penempatan aktif ganda pada tahun ajaran yang sama
+            // Cegah penempatan aktif ganda
             if ($status_aktif === 1) {
 
                 $stmtCek = mysqli_prepare(
@@ -145,16 +182,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 mysqli_stmt_close($stmtCek);
 
                 if ($dataCek) {
-                    $error = "Siswa sudah memiliki penempatan aktif pada tahun ajaran ini.";
+                    $error = "Siswa sudah memiliki penempatan aktif pada tahun ajaran 2026/2027.";
                 }
             }
 
             // Simpan data jika tidak ada error
             if ($error === '') {
 
-                if ($tanggal_selesai === '') {
-                    $tanggal_selesai = null;
-                }
+                $tanggal_selesai_db = (
+                    $tanggal_selesai === ''
+                ) ? null : $tanggal_selesai;
 
                 $stmt = mysqli_prepare(
                     $koneksi,
@@ -179,22 +216,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $kelas_id,
                         $tahun_ajaran_id,
                         $tanggal_mulai,
-                        $tanggal_selesai,
+                        $tanggal_selesai_db,
                         $status_aktif
                     );
 
                     if (mysqli_stmt_execute($stmt)) {
+
                         mysqli_stmt_close($stmt);
 
-                        $_SESSION['pesan'] = "Data penempatan siswa berhasil ditambahkan!";
+                        $_SESSION['pesan'] =
+                            "Data penempatan siswa berhasil ditambahkan!";
 
                         header("Location: kelola_penempatan_siswa.php");
                         exit;
-                    } else {
-                        $error = "Gagal menyimpan data penempatan siswa.";
-                    }
 
-                    mysqli_stmt_close($stmt);
+                    } else {
+
+                        $error = "Gagal menyimpan data penempatan siswa: " .
+                            mysqli_stmt_error($stmt);
+
+                        mysqli_stmt_close($stmt);
+                    }
 
                 } else {
                     $error = "Terjadi kesalahan saat menyiapkan query.";
@@ -461,6 +503,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
             <?php endif; ?>
 
+            <?php if (!$dataTahun): ?>
+                <div class="alert alert-warning">
+                    Tahun ajaran 2026/2027 belum tersedia atau belum aktif.
+                </div>
+            <?php endif; ?>
+
+            <?php if (mysqli_num_rows($queryKelas) === 0): ?>
+                <div class="alert alert-warning">
+                    Data kelas XII RPL 1 dan XII RPL 2 belum ditemukan.
+                    Periksa data pada tabel t_kelas.
+                </div>
+            <?php endif; ?>
+
             <div class="form-card">
 
                 <h5>Formulir Penempatan Siswa</h5>
@@ -516,35 +571,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     value="<?= (int) $kelas['id'] ?>"
                                     <?= (int) $kelas_id === (int) $kelas['id'] ? 'selected' : '' ?>
                                 >
-                                    <?= e(trim(($kelas['nama'] ?? '') . ' ' . ($kelas['tingkat'] ?? '') . ' ' . ($kelas['jurusan'] ?? ''))) ?>
+                                    <?= e($kelas['tingkat'] . ' ' . $kelas['jurusan'] . ' ' . $kelas['nama']) ?>
                                 </option>
                             <?php endwhile; ?>
                         </select>
                     </div>
 
-                    <!-- TAHUN AJARAN -->
+                    <!-- TAHUN AJARAN TERKUNCI -->
                     <div class="form-group">
-                        <label for="tahun_ajaran_id">
-                            Tahun Ajaran <span class="required">*</span>
+                        <label for="tahun_ajaran">
+                            Tahun Ajaran
                         </label>
 
-                        <select
-                            name="tahun_ajaran_id"
-                            id="tahun_ajaran_id"
+                        <input
+                            type="text"
+                            id="tahun_ajaran"
                             class="form-control"
-                            required
+                            value="2026/2027"
+                            readonly
                         >
-                            <option value="">-- Pilih Tahun Ajaran --</option>
 
-                            <?php while ($tahun = mysqli_fetch_assoc($queryTahun)): ?>
-                                <option
-                                    value="<?= (int) $tahun['id'] ?>"
-                                    <?= (int) $tahun_ajaran_id === (int) $tahun['id'] ? 'selected' : '' ?>
-                                >
-                                    <?= e($tahun['nama']) ?>
-                                </option>
-                            <?php endwhile; ?>
-                        </select>
+                        <small class="form-text text-muted">
+                            Tahun ajaran telah ditentukan oleh sistem.
+                        </small>
                     </div>
 
                     <!-- TANGGAL -->
@@ -619,6 +668,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <button
                             type="submit"
                             class="btn btn-primary mr-2 mb-2"
+                            <?= (!$dataTahun || mysqli_num_rows($queryKelas) === 0) ? 'disabled' : '' ?>
                         >
                             &#10003; Simpan Data
                         </button>
@@ -637,7 +687,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
 
             <footer>
-                &copy; <?= date('Y') ?> Sistem Pelanggaran Siswa - UKK 2026
+                &copy; 2026 Sistem Pelanggaran Siswa - UKK 2026
             </footer>
 
         </main>

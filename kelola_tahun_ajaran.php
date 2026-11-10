@@ -13,6 +13,20 @@ if (!$query) {
     die("Gagal mengambil data: " . mysqli_error($koneksi));
 }
 
+// Menghitung jumlah tahun ajaran aktif
+$cek_aktif = mysqli_query($koneksi, "
+    SELECT COUNT(*) AS total
+    FROM t_tahun_ajaran
+    WHERE status_aktif = 1
+");
+
+if (!$cek_aktif) {
+    die("Gagal memeriksa status tahun ajaran: " . mysqli_error($koneksi));
+}
+
+$data_aktif = mysqli_fetch_assoc($cek_aktif);
+$total_aktif = (int) $data_aktif['total'];
+
 // Mengamankan output
 function e($nilai)
 {
@@ -266,6 +280,31 @@ function e($nilai)
             <!-- KARTU DATA -->
             <div class="content-card">
 
+                <!-- PERINGATAN STATUS AKTIF -->
+                <?php if ($total_aktif > 1) : ?>
+
+                    <div class="alert alert-danger">
+                        <strong>Peringatan!</strong>
+                        Terdapat <?= $total_aktif; ?> tahun ajaran
+                        yang berstatus aktif. Seharusnya hanya boleh
+                        ada satu tahun ajaran aktif.
+                    </div>
+
+                <?php elseif ($total_aktif === 0) : ?>
+
+                    <div class="alert alert-warning">
+                        <strong>Perhatian!</strong>
+                        Belum ada tahun ajaran yang berstatus aktif.
+                    </div>
+
+                <?php else : ?>
+
+                    <div class="alert alert-success">
+                        Hanya terdapat satu tahun ajaran yang aktif.
+                    </div>
+
+                <?php endif; ?>
+
                 <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
 
                     <div>
@@ -308,6 +347,7 @@ function e($nilai)
 
                             while ($row = mysqli_fetch_assoc($query)) :
                             ?>
+
                                 <tr>
                                     <td><?= $no++; ?></td>
 
@@ -325,18 +365,23 @@ function e($nilai)
 
                                     <td>
                                         <?php if ((int)($row['status_aktif'] ?? 0) === 1) : ?>
+
                                             <span class="status-badge status-aktif">
                                                 Aktif
                                             </span>
+
                                         <?php else : ?>
+
                                             <span class="status-badge status-nonaktif">
                                                 Tidak Aktif
                                             </span>
+
                                         <?php endif; ?>
                                     </td>
 
                                     <td>
                                         <div class="d-flex gap-1">
+
                                             <a href="edit_tahun_ajaran.php?id=<?= (int)$row['id']; ?>"
                                                class="btn btn-warning btn-sm">
                                                 Edit
@@ -347,9 +392,11 @@ function e($nilai)
                                                onclick="return confirm('Yakin ingin menghapus tahun ajaran ini?')">
                                                 Hapus
                                             </a>
+
                                         </div>
                                     </td>
                                 </tr>
+
                             <?php endwhile; ?>
                         </tbody>
 

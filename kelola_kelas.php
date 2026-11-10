@@ -11,27 +11,33 @@ if (($_SESSION['role'] ?? '') !== 'admin') {
     exit('Akses ditolak!');
 }
 
-// Mengambil data kelas XII RPL1 dan XII RPL2 yang aktif
+// Mengambil data kelas XII RPL 1 dan XII RPL 2
+// beserta jumlah siswa berdasarkan penempatan aktif tahun 2026/2027
+// Mengambil kelas XII RPL 1 dan XII RPL 2
 $sql = "SELECT
             k.id,
             k.nama,
             k.tingkat,
             k.jurusan,
             k.status_aktif,
-            COUNT(
-                CASE WHEN ks.status_aktif = 1 THEN 1 END
+
+            (
+                SELECT COUNT(DISTINCT ks.siswa_id)
+                FROM t_kelas_siswa ks
+                INNER JOIN t_tahun_ajaran ta
+                    ON ta.id = ks.tahun_ajaran_id
+                WHERE ks.kelas_id = k.id
+                  AND ks.status_aktif = 1
+                  AND ta.nama = '2026/2027'
+                  AND ta.status_aktif = 1
             ) AS jumlah_siswa
+
         FROM t_kelas k
-        LEFT JOIN t_kelas_siswa ks
-            ON ks.kelas_id = k.id
-        WHERE k.nama IN ('XII RPL1', 'XII RPL2')
-          AND k.status_aktif = 1
-        GROUP BY
-            k.id,
-            k.nama,
-            k.tingkat,
-            k.jurusan,
-            k.status_aktif
+
+        WHERE k.nama IN ('RPL 1', 'RPL 2')
+          AND k.tingkat = 'XII'
+          AND k.jurusan = 'RPL'
+
         ORDER BY k.nama ASC";
 
 $query = mysqli_query($koneksi, $sql);
@@ -160,14 +166,14 @@ function e($nilai)
             border-color: #2546b8;
         }
 
-         #tabelKategori thead th {
+        #tabelKelas thead th {
             background: #172554;
             color: white;
             vertical-align: middle;
             white-space: nowrap;
         }
 
-        #tabelKategori tbody td {
+        #tabelKelas tbody td {
             vertical-align: middle;
         }
 
@@ -284,7 +290,7 @@ function e($nilai)
             </h1>
 
             <p class="page-description">
-                Kelola data kelas XII RPL1 dan XII RPL2 yang aktif.
+                Kelola data kelas XII RPL 1 dan XII RPL 2 yang aktif.
             </p>
 
             <!-- KARTU DATA KELAS -->
@@ -298,7 +304,7 @@ function e($nilai)
                         </h5>
 
                         <small class="text-muted">
-                            Daftar kelas aktif XII RPL1 dan XII RPL2
+                            Daftar kelas aktif XII RPL 1 dan XII RPL 2
                         </small>
                     </div>
 
@@ -341,7 +347,7 @@ function e($nilai)
 
                                     <td>
                                         <strong>
-                                            <?= e($data['nama']); ?>
+                                            <?= e($data['tingkat'] . ' ' . $data['jurusan'] . ' ' . $data['nama']); ?>
                                         </strong>
                                     </td>
 
@@ -354,7 +360,9 @@ function e($nilai)
                                     </td>
 
                                     <td>
-                                        <?= (int)$data['jumlah_siswa']; ?>
+                                        <strong>
+                                            <?= (int)$data['jumlah_siswa']; ?>
+                                        </strong>
                                         Siswa
                                     </td>
 
