@@ -1,4 +1,3 @@
-
 <?php
 session_start();
 
@@ -95,7 +94,7 @@ function formatTanggal($tanggal)
         }
 
         /* SIDEBAR */
-        .sidebar {
+        .sidebar { position: sticky; top: 0; height: 100vh; align-self: flex-start; overflow-y: auto;
             background: #172554;
             color: white;
             min-height: 100vh;
@@ -220,7 +219,7 @@ function formatTanggal($tanggal)
         }
 
         @media (max-width: 767px) {
-            .sidebar {
+            .sidebar { position: static; height: auto; overflow-y: visible; align-self: auto;
                 min-height: auto;
             }
 

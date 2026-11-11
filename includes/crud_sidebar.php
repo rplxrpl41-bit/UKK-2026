@@ -1,45 +1,61 @@
-
 <?php
-
-// =====================================
-// PENGATURAN SIDEBAR
-// =====================================
-$current_page = basename($_SERVER['PHP_SELF']);
-
-$menu_aktif = $menu_aktif ?? $current_page;
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 $role_sidebar = $_SESSION['role'] ?? '';
+$email_sidebar = strtolower(trim($_SESSION['email'] ?? ''));
+$menu_aktif = $menu_aktif ?? '';
+
+$email_wali_kelas = [
+    'ari@gmail.com',
+    'aldi@gmail.com',
+    'anshor@gmail.com'
+];
+
+$is_wali_kelas = (
+    $role_sidebar === 'guru' && (
+        !empty($_SESSION['is_wali_kelas']) ||
+        in_array($email_sidebar, $email_wali_kelas, true)
+    )
+);
 
 // =====================================
-// CEK STATUS WALI KELAS
+// MENU ADMIN
 // =====================================
-$is_wali_kelas_sidebar = (
-    $role_sidebar === 'guru'
-    && !empty($_SESSION['is_wali_kelas'])
-);
+if ($role_sidebar === 'admin') {
+
+    $judul_sidebar = 'My Website';
+
+    $menu_items = [
+        ['dashboard.php', '⌂ Dashboard', 'Dashboard'],
+        ['kelola_siswa.php', '♟ Data Siswa', 'Data Siswa'],
+        ['kelola_guru.php', '♙ Data Guru', 'Data Guru'],
+        ['kelola_kelas.php', '▦ Data Kelas', 'Data Kelas'],
+        ['kelola_tahun_ajaran.php', '▤ Tahun Ajaran', 'Tahun Ajaran'],
+        ['kelola_wali_kelas.php', '♟ Wali Kelas', 'Wali Kelas'],
+        ['kelola_penempatan_siswa.php', '♧ Penempatan Siswa', 'Penempatan Siswa'],
+        ['kelola_kategori_pelanggaran.php', '⚑ Kategori Pelanggaran', 'Kategori Pelanggaran'],
+        ['menu3.php', '☷ Jenis Pelanggaran', 'Jenis Pelanggaran'],
+        ['menu4.php', '♙ Data Pengguna', 'Data Pengguna'],
+        ['laporan.php', '▤ Laporan', 'Laporan']
+    ];
 
 // =====================================
 // MENU WALI KELAS
 // =====================================
-if ($is_wali_kelas_sidebar) {
+} elseif ($is_wali_kelas) {
 
-    $judul_sidebar = 'Panel Wali Kelas';
+    $judul_sidebar = 'Panel Guru';
 
     $menu_items = [
-
         ['dashboard.php', '⌂ Dashboard', 'Dashboard'],
-
         ['catatan_pelanggaran.php', '✎ Catatan Pelanggaran', 'Catatan Pelanggaran'],
-
         ['tindakan.php', '⚑ Tindakan', 'Tindakan'],
-
         ['riwayat_pelanggaran.php', '☰ Riwayat Pelanggaran', 'Riwayat Pelanggaran'],
-
         ['laporan.php', '▤ Laporan', 'Laporan'],
-
         ['rekap_point.php', '★ Rekap Poin', 'Rekap Poin'],
-
-        ['tentang_saya.php', 'ℹ About Me', 'About Me'],
+        ['tentang_saya.php', 'ℹ About Me', 'About Me']
     ];
 
 // =====================================
@@ -50,99 +66,53 @@ if ($is_wali_kelas_sidebar) {
     $judul_sidebar = 'Panel Guru';
 
     $menu_items = [
-
         ['dashboard.php', '⌂ Dashboard', 'Dashboard'],
-
         ['catatan_pelanggaran.php', '✎ Catatan Pelanggaran', 'Catatan Pelanggaran'],
-
         ['tindakan.php', '⚑ Tindakan', 'Tindakan'],
-
         ['riwayat_pelanggaran.php', '☰ Riwayat Pelanggaran', 'Riwayat Pelanggaran'],
-
         ['rekap_point.php', '★ Rekap Poin', 'Rekap Poin'],
-
-        ['tentang_saya.php', 'ℹ About Me', 'About Me'],
-    ];
-
-// =====================================
-// MENU ADMIN
-// =====================================
-} elseif ($role_sidebar === 'admin') {
-
-    $judul_sidebar = 'My Website';
-
-    $menu_items = [
-
-        ['dashboard.php', '⌂ Dashboard', 'Dashboard'],
-
-        ['kelola_siswa.php', '♟ Data Siswa', 'Data Siswa'],
-
-        ['kelola_guru.php', '♟ Data Guru', 'Data Guru'],
-
-        ['kelola_kelas.php', '▦ Data Kelas', 'Data Kelas'],
-
-        ['kelola_tahun_ajaran.php', '◷ Kelola Tahun Ajaran', 'Tahun Ajaran'],
-
-        ['kelola_wali_kelas.php', '♙ Kelola Wali Kelas', 'Wali Kelas'],
-
-        ['kelola_penempatan_siswa.php', '⇄ Penempatan Siswa', 'Penempatan Siswa'],
-
-        ['kelola_kategori_pelanggaran.php', '☷ Kategori Pelanggaran', 'Kategori Pelanggaran'],
-
-        ['laporan.php', '▤ Laporan', 'Laporan'],
-
-        ['tentang_saya.php', 'ℹ About Me', 'About Me'],
+        ['tentang_saya.php', 'ℹ About Me', 'About Me']
     ];
 
 } else {
-
-    $judul_sidebar = 'Menu';
-
-    $menu_items = [];
+    http_response_code(403);
+    exit('Akses ditolak!');
 }
-
 ?>
 
-<aside class="col-md-3 col-lg-2 sidebar">
+<div class="sidebar">
 
-    <!-- JUDUL SIDEBAR -->
-    <div class="sidebar-title">
-        <?= htmlspecialchars(
-            $judul_sidebar,
-            ENT_QUOTES,
-            'UTF-8'
-        ) ?>
-    </div>
+    <h4 class="sidebar-title">
+        <?= htmlspecialchars($judul_sidebar, ENT_QUOTES, 'UTF-8'); ?>
+    </h4>
 
-    <!-- MENU NAVIGASI -->
     <nav class="nav flex-column">
 
         <?php foreach ($menu_items as $item): ?>
 
-            <a
-                href="<?= htmlspecialchars($item[0], ENT_QUOTES, 'UTF-8') ?>"
-                class="nav-link <?= $menu_aktif === $item[2] ? 'active' : '' ?>"
-            >
-                <?= htmlspecialchars(
-                    $item[1],
-                    ENT_QUOTES,
-                    'UTF-8'
-                ) ?>
+            <?php
+            $url = $item[0];
+            $label = $item[1];
+            $nama_menu = $item[2];
+
+            $aktif = ($menu_aktif === $nama_menu);
+            ?>
+
+            <a href="<?= htmlspecialchars($url, ENT_QUOTES, 'UTF-8'); ?>"
+               class="nav-link <?= $aktif ? 'active' : ''; ?>">
+
+                <?= htmlspecialchars($label, ENT_QUOTES, 'UTF-8'); ?>
+
             </a>
 
         <?php endforeach; ?>
 
-        <hr>
-
-        <!-- LOGOUT -->
-        <a
-            href="logout.php"
-            class="nav-link logout"
-            onclick="return confirm('Yakin ingin logout?')"
-        >
-            ⇥ Logout
-        </a>
-
     </nav>
 
-</aside>
+    <hr>
+
+    <a href="logout.php" class="nav-link logout">
+        ⇥ Logout
+    </a>
+
+</div>

@@ -1,6 +1,6 @@
-
 <?php
 session_start();
+
 include 'config/koneksi.php';
 
 // Cek login
@@ -10,20 +10,35 @@ if (!isset($_SESSION['login'])) {
 }
 
 // Cek hak akses admin
-if (!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     http_response_code(403);
     exit("Akses ditolak!");
 }
 
-// Ambil data siswa
-$sql = "SELECT * FROM t_siswa ORDER BY id DESC";
+// Ambil data siswa beserta kelas aktifnya
+$sql = "
+    SELECT
+        s.*,
+        (
+            SELECT CONCAT(k.tingkat, ' ', k.jurusan)
+            FROM t_kelas_siswa ks
+            INNER JOIN t_kelas k ON k.id = ks.kelas_id
+            WHERE ks.siswa_id = s.id
+              AND ks.status_aktif = 1
+              AND k.status_aktif = 1
+            ORDER BY ks.id DESC
+            LIMIT 1
+        ) AS kelas
+    FROM t_siswa s
+    ORDER BY s.id DESC
+";
+
 $hasil = mysqli_query($koneksi, $sql);
 
 if (!$hasil) {
     die("Gagal mengambil data siswa: " . mysqli_error($koneksi));
 }
 
-// Fungsi untuk mengamankan output HTML
 function e($nilai) {
     return htmlspecialchars((string)($nilai ?? ''), ENT_QUOTES, 'UTF-8');
 }
@@ -35,13 +50,11 @@ function e($nilai) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>Kelola Siswa</title>
+    <title>Kelola Siswa - My Website</title>
 
-    <!-- Bootstrap 4 -->
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
 
-    <!-- DataTables Bootstrap 4 -->
     <link rel="stylesheet"
           href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap4.min.css">
 
@@ -52,7 +65,7 @@ function e($nilai) {
             margin: 0;
         }
 
-        .sidebar {
+        .sidebar { position: sticky; top: 0; height: 100vh; align-self: flex-start; overflow-y: auto;
             background: #172554;
             color: white;
             min-height: 100vh;
@@ -100,7 +113,7 @@ function e($nilai) {
             background: white;
             border: none;
             border-radius: 12px;
-            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 3px 12px rgba(0,0,0,0.06);
         }
 
         .table thead th {
@@ -167,7 +180,7 @@ function e($nilai) {
         }
 
         @media (max-width: 767px) {
-            .sidebar {
+            .sidebar { position: static; height: auto; overflow-y: visible; align-self: auto;
                 min-height: auto;
             }
 
@@ -188,7 +201,6 @@ function e($nilai) {
 <div class="container-fluid">
     <div class="row">
 
-        <!-- SIDEBAR -->
         <aside class="col-md-3 col-lg-2 sidebar">
             <h4>My Website</h4>
 
@@ -202,13 +214,13 @@ function e($nilai) {
 
                 <li class="nav-item">
                     <a href="kelola_siswa.php" class="nav-link active">
-                         ♟ Data Siswa
+                        ♟ Data Siswa
                     </a>
                 </li>
 
                 <li class="nav-item">
                     <a href="kelola_guru.php" class="nav-link">
-                         ♟ Data Guru
+                        ♟ Data Guru
                     </a>
                 </li>
 
@@ -260,7 +272,6 @@ function e($nilai) {
             </ul>
         </aside>
 
-        <!-- KONTEN UTAMA -->
         <main class="col-md-9 col-lg-10 content">
 
             <div class="d-flex flex-wrap justify-content-between
@@ -280,7 +291,6 @@ function e($nilai) {
 
             </div>
 
-            <!-- TABEL DATA SISWA -->
             <div class="card card-main">
                 <div class="card-body">
 
@@ -301,6 +311,7 @@ function e($nilai) {
                                     <th>NIS</th>
                                     <th>NISN</th>
                                     <th>Nama</th>
+                                    <th>Kelas</th>
                                     <th>Jenis Kelamin</th>
                                     <th>Tanggal Lahir</th>
                                     <th>Alamat</th>
@@ -319,12 +330,19 @@ function e($nilai) {
                             ?>
                                 <tr>
                                     <td><?= $no++ ?></td>
-
                                     <td><?= e($siswa['nis']) ?></td>
-
                                     <td><?= e($siswa['nisn']) ?></td>
-
                                     <td><?= e($siswa['nama']) ?></td>
+
+                                    <td>
+                                        <?php if (!empty($siswa['kelas'])) { ?>
+                                            <?= e($siswa['kelas']) ?>
+                                        <?php } else { ?>
+                                            <span class="text-muted">
+                                                Belum ditempatkan
+                                            </span>
+                                        <?php } ?>
+                                    </td>
 
                                     <td>
                                         <?php
@@ -338,10 +356,7 @@ function e($nilai) {
                                         ?>
                                     </td>
 
-                                    <td>
-                                        <?= e($siswa['tanggal_lahir']) ?>
-                                    </td>
-
+                                    <td><?= e($siswa['tanggal_lahir']) ?></td>
                                     <td><?= e($siswa['alamat']) ?></td>
 
                                     <td>
@@ -357,38 +372,32 @@ function e($nilai) {
                                     </td>
 
                                     <td><?= e($siswa['created_at'] ?? '') ?></td>
-
                                     <td><?= e($siswa['updated_at'] ?? '') ?></td>
 
                                     <td>
                                         <div class="action-buttons">
-
-                                            <a
-                                                href="edit_siswa.php?id=<?= (int)$siswa['id'] ?>"
-                                                class="btn btn-warning btn-sm">
+                                            <a href="edit_siswa.php?id=<?= (int)$siswa['id'] ?>"
+                                               class="btn btn-warning btn-sm">
                                                 Edit
                                             </a>
 
-                                            <a
-                                                href="hapus_siswa.php?id=<?= (int)$siswa['id'] ?>"
-                                                class="btn btn-danger btn-sm"
-                                                onclick="return confirm('Yakin ingin menghapus siswa ini?')">
+                                            <a href="hapus_siswa.php?id=<?= (int)$siswa['id'] ?>"
+                                               class="btn btn-danger btn-sm"
+                                               onclick="return confirm('Yakin ingin menghapus siswa ini?')">
                                                 Hapus
                                             </a>
-
                                         </div>
                                     </td>
                                 </tr>
-                            <?php
-                            }
-                            ?>
+                            <?php } ?>
                             </tbody>
 
                         </table>
 
                     </div>
 
-                    <a href="dashboard.php" class="btn btn-secondary btn-sm mt-3">
+                    <a href="dashboard.php"
+                       class="btn btn-secondary btn-sm mt-3">
                         Kembali ke Dashboard
                     </a>
 
@@ -404,39 +413,25 @@ function e($nilai) {
     </div>
 </div>
 
-<!-- jQuery: harus dimuat sebelum DataTables -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-
-<!-- Bootstrap JavaScript -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
-
-<!-- DataTables Core -->
 <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
-
-<!-- DataTables Bootstrap 4 -->
 <script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap4.min.js"></script>
 
-<!-- Konfigurasi DataTables -->
 <script>
 $(document).ready(function () {
-
     $('#tabelSiswa').DataTable({
         processing: true,
-
-        // Urutkan berdasarkan ID terbaru (kolom ID tidak ditampilkan)
         order: [[0, 'asc']],
-
-        // Pilihan jumlah data per halaman
         pageLength: 10,
+
         lengthMenu: [
             [10, 25, 50, 100, -1],
             [10, 25, 50, 100, 'Semua']
         ],
 
-        // Kolom tanggal dan teks mengikuti urutan standar
         autoWidth: false,
 
-        // Pengaturan bahasa Indonesia
         language: {
             search: 'Cari:',
             searchPlaceholder: 'Cari data siswa...',
@@ -455,16 +450,14 @@ $(document).ready(function () {
             }
         },
 
-        // Jangan mengurutkan kolom tombol aksi
         columnDefs: [
             {
-                targets: [10],
+                targets: [11],
                 orderable: false,
                 searchable: false
             }
         ]
     });
-
 });
 </script>
 

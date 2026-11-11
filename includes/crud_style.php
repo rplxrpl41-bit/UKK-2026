@@ -10,6 +10,18 @@ body {
     color: white;
     min-height: 100vh;
     padding: 22px 15px;
+
+    /* Sidebar diam di tempat saat halaman di-scroll */
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    align-self: flex-start;
+    overflow-y: auto;
+}
+
+/* Kolom pembungkus sidebar ikut berwarna agar penuh sepanjang halaman */
+.row > div:has(> .sidebar) {
+    background: #172554;
 }
 
 .sidebar-title {
@@ -82,6 +94,10 @@ body {
 @media (max-width: 767px) {
     .sidebar {
         min-height: auto;
+        position: static;
+        height: auto;
+        overflow-y: visible;
+        align-self: auto;
     }
 
     .main-content {

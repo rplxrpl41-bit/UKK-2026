@@ -1,95 +1,105 @@
+
 <?php
 session_start();
 
 include 'includes/cek_session.php';
 include 'config/koneksi.php';
 
-// Hanya admin yang boleh menambahkan kelas
 if (($_SESSION['role'] ?? '') !== 'admin') {
     http_response_code(403);
     die('Akses ditolak!');
 }
 
 $error = '';
-$nama = '';
 $tingkat = '';
 $jurusan = '';
 $status_aktif = '1';
 
-// Proses simpan data
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-
-    $nama = trim($_POST['nama'] ?? '');
-    $tingkat = trim($_POST['tingkat'] ?? '');
-    $jurusan = trim($_POST['jurusan'] ?? '');
-    $status_aktif = (string) ($_POST['status_aktif'] ?? '1');
-
-    // Validasi
-    if ($nama === '' || $tingkat === '' || $jurusan === '') {
-        $error = 'Semua kolom wajib diisi.';
-
-    } elseif (!in_array($status_aktif, ['0', '1'], true)) {
-        $error = 'Status kelas tidak valid.';
-
-    } else {
-
-        $status = (int) $status_aktif;
-
-        $stmt = mysqli_prepare(
-            $koneksi,
-            "INSERT INTO t_kelas
-            (nama, tingkat, jurusan, status_aktif)
-            VALUES (?, ?, ?, ?)"
-        );
-
-        if (!$stmt) {
-            $error = 'Gagal menyiapkan data kelas.';
-        } else {
-            mysqli_stmt_bind_param(
-                $stmt,
-                'sssi',
-                $nama,
-                $tingkat,
-                $jurusan,
-                $status
-            );
-
-            if (!mysqli_stmt_execute($stmt)) {
-                $error = 'Gagal menyimpan data kelas.';
-            } else {
-                header('Location: kelola_kelas.php?pesan=sukses');
-                exit;
-            }
-
-            mysqli_stmt_close($stmt);
-        }
-    }
+function e($nilai) {
+    return htmlspecialchars((string)($nilai ?? ''), ENT_QUOTES, 'UTF-8');
 }
 
-// Fungsi keamanan output
-function e($nilai)
-{
-    return htmlspecialchars(
-        (string) $nilai,
-        ENT_QUOTES,
-        'UTF-8'
-    );
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $tingkat = trim($_POST['tingkat'] ?? '');
+    $jurusan = trim($_POST['jurusan'] ?? '');
+    $status_aktif = (string)($_POST['status_aktif'] ?? '1');
+
+    $daftar_tingkat = ['X', 'XI', 'XII'];
+    $daftar_jurusan = ['RPL', 'TKJ', 'TKR', 'BD', 'TSM'];
+
+    if (!in_array($tingkat, $daftar_tingkat, true) ||
+        !in_array($jurusan, $daftar_jurusan, true)) {
+        $error = 'Tingkat atau jurusan tidak valid.';
+    } elseif (!in_array($status_aktif, ['0', '1'], true)) {
+        $error = 'Status kelas tidak valid.';
+    } else {
+        // Nama kelas dibuat otomatis.
+        $nama = $jurusan;
+        $status = (int)$status_aktif;
+
+        // Cek agar kelas yang sama tidak dibuat dua kali.
+        $cek = mysqli_prepare(
+            $koneksi,
+            "SELECT id FROM t_kelas
+             WHERE nama = ? AND tingkat = ? AND jurusan = ?
+             LIMIT 1"
+        );
+
+        if (!$cek) {
+            $error = 'Gagal memeriksa data kelas.';
+        } else {
+            mysqli_stmt_bind_param($cek, 'sss', $nama, $tingkat, $jurusan);
+            mysqli_stmt_execute($cek);
+            $hasil_cek = mysqli_stmt_get_result($cek);
+
+            if (mysqli_num_rows($hasil_cek) > 0) {
+                $error = 'Kelas tersebut sudah terdaftar.';
+            } else {
+                $stmt = mysqli_prepare(
+                    $koneksi,
+                    "INSERT INTO t_kelas
+                     (nama, tingkat, jurusan, status_aktif)
+                     VALUES (?, ?, ?, ?)"
+                );
+
+                if (!$stmt) {
+                    $error = 'Gagal menyiapkan penyimpanan kelas.';
+                } else {
+                    mysqli_stmt_bind_param(
+                        $stmt,
+                        'sssi',
+                        $nama,
+                        $tingkat,
+                        $jurusan,
+                        $status
+                    );
+
+                    if (mysqli_stmt_execute($stmt)) {
+                        header('Location: kelola_kelas.php?pesan=sukses');
+                        exit;
+                    } else {
+                        $error = 'Gagal menyimpan data kelas.';
+                    }
+
+                    mysqli_stmt_close($stmt);
+                }
+            }
+
+            mysqli_stmt_close($cek);
+        }
+    }
 }
 ?>
 
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Tambah Kelas - My Website</title>
 
-    <link
-        rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
-    >
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
 
     <style>
         body {
@@ -98,7 +108,6 @@ function e($nilai)
             margin: 0;
         }
 
-        /* SIDEBAR */
         .sidebar {
             background: #172554;
             color: white;
@@ -133,7 +142,6 @@ function e($nilai)
             color: #fca5a5;
         }
 
-        /* KONTEN */
         .content {
             padding: 28px;
         }
@@ -149,19 +157,11 @@ function e($nilai)
             margin-bottom: 20px;
         }
 
-        .card-main {
-            background: white;
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
-        }
-
-        /* FORM */
         .form-card {
             background: white;
             padding: 25px;
             border-radius: 12px;
-            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 3px 12px rgba(0,0,0,0.06);
             margin-top: 20px;
         }
 
@@ -190,7 +190,6 @@ function e($nilai)
             margin-top: 25px;
         }
 
-        /* TOMBOL */
         .btn-primary {
             background: #3157d5;
             border-color: #3157d5;
@@ -224,13 +223,10 @@ function e($nilai)
 <div class="container-fluid">
     <div class="row">
 
-        <!-- SIDEBAR -->
         <aside class="col-md-3 col-lg-2 sidebar">
-
             <h4>My Website</h4>
 
             <ul class="nav nav-pills flex-column">
-
                 <li class="nav-item">
                     <a href="dashboard.php" class="nav-link">
                         &#8962; Dashboard
@@ -288,17 +284,14 @@ function e($nilai)
                 <hr style="border-color: #475569;">
 
                 <li class="nav-item">
-                    <a href="logout.php"
-                       class="nav-link logout"
+                    <a href="logout.php" class="nav-link logout"
                        onclick="return confirm('Yakin ingin logout?')">
                         &#10140; Logout
                     </a>
                 </li>
-
             </ul>
         </aside>
 
-        <!-- KONTEN UTAMA -->
         <main class="col-md-9 col-lg-10 content">
 
             <h2 class="page-title">Tambah Kelas</h2>
@@ -307,23 +300,17 @@ function e($nilai)
                 Tambahkan data kelas baru ke dalam sistem.
             </p>
 
-            <!-- PESAN ERROR -->
             <?php if ($error !== '') { ?>
                 <div class="alert alert-danger alert-dismissible fade show">
                     <?= e($error) ?>
 
-                    <button
-                        type="button"
-                        class="close"
-                        data-dismiss="alert"
-                        aria-label="Tutup"
-                    >
+                    <button type="button" class="close"
+                            data-dismiss="alert" aria-label="Tutup">
                         <span>&times;</span>
                     </button>
                 </div>
             <?php } ?>
 
-            <!-- FORM CARD -->
             <div class="form-card">
 
                 <h5>Formulir Data Kelas</h5>
@@ -337,36 +324,13 @@ function e($nilai)
 
                 <form method="POST" action="">
 
-                    <!-- NAMA KELAS -->
-                    <div class="form-group">
-                        <label for="nama">
-                            Nama Kelas <span class="required">*</span>
-                        </label>
-
-                        <input
-                            type="text"
-                            name="nama"
-                            id="nama"
-                            class="form-control"
-                            placeholder="Contoh: XI RPL 1"
-                            value="<?= e($nama) ?>"
-                            maxlength="100"
-                            required
-                        >
-                    </div>
-
-                    <!-- TINGKAT -->
                     <div class="form-group">
                         <label for="tingkat">
                             Tingkat <span class="required">*</span>
                         </label>
 
-                        <select
-                            name="tingkat"
-                            id="tingkat"
-                            class="form-control"
-                            required
-                        >
+                        <select name="tingkat" id="tingkat"
+                                class="form-control" required>
                             <option value="">-- Pilih Tingkat --</option>
 
                             <option value="X"
@@ -386,57 +350,32 @@ function e($nilai)
                         </select>
                     </div>
 
-                    <!-- JURUSAN -->
                     <div class="form-group">
                         <label for="jurusan">
                             Jurusan <span class="required">*</span>
                         </label>
 
-                        <select
-                            name="jurusan"
-                            id="jurusan"
-                            class="form-control"
-                            required
-                        >
+                        <select name="jurusan" id="jurusan"
+                                class="form-control" required>
                             <option value="">-- Pilih Jurusan --</option>
 
-                            <option value="RPL"
-                                <?= $jurusan === 'RPL' ? 'selected' : '' ?>>
-                                RPL
-                            </option>
-
-                            <option value="TKJ"
-                                <?= $jurusan === 'TKJ' ? 'selected' : '' ?>>
-                                TKJ
-                            </option>
-
-                            <option value="TKR"
-                                <?= $jurusan === 'TKR' ? 'selected' : '' ?>>
-                                TKR
-                            </option>
-
-                            <option value="BD"
-                                <?= $jurusan === 'BD' ? 'selected' : '' ?>>
-                                BD
-                            </option>
-
-                            <option value="TSM"
-                                <?= $jurusan === 'TSM' ? 'selected' : '' ?>>
-                                TSM
-                            </option>
+                            <?php
+                            $jurusan_list = ['RPL', 'TKJ', 'TKR', 'BD', 'TSM'];
+                            foreach ($jurusan_list as $item) {
+                            ?>
+                                <option value="<?= e($item) ?>"
+                                    <?= $jurusan === $item ? 'selected' : '' ?>>
+                                    <?= e($item) ?>
+                                </option>
+                            <?php } ?>
                         </select>
                     </div>
 
-                    <!-- STATUS -->
                     <div class="form-group">
                         <label for="status_aktif">Status Kelas</label>
 
-                        <select
-                            name="status_aktif"
-                            id="status_aktif"
-                            class="form-control"
-                            required
-                        >
+                        <select name="status_aktif" id="status_aktif"
+                                class="form-control" required>
                             <option value="1"
                                 <?= $status_aktif === '1' ? 'selected' : '' ?>>
                                 Aktif
@@ -449,27 +388,19 @@ function e($nilai)
                         </select>
                     </div>
 
-                    <!-- TOMBOL -->
                     <div class="form-actions d-flex flex-wrap">
-
-                        <button
-                            type="submit"
-                            class="btn btn-primary mr-2 mb-2"
-                        >
+                        <button type="submit"
+                                class="btn btn-primary mr-2 mb-2">
                             &#10003; Simpan Data
                         </button>
 
-                        <a
-                            href="kelola_kelas.php"
-                            class="btn btn-secondary mb-2"
-                        >
+                        <a href="kelola_kelas.php"
+                           class="btn btn-secondary mb-2">
                             Kembali
                         </a>
-
                     </div>
 
                 </form>
-
             </div>
 
             <footer>
@@ -477,12 +408,10 @@ function e($nilai)
             </footer>
 
         </main>
-
     </div>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>

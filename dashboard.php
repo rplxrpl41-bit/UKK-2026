@@ -11,12 +11,22 @@ $namaUser = $_SESSION['name']
     ?? 'Pengguna';
 
 $role = $_SESSION['role'] ?? '';
+$email = strtolower(trim($_SESSION['email'] ?? ''));
 
 $isAdmin = ($role === 'admin');
 
+$emailWaliKelas = [
+    'ari@gmail.com',
+    'aldi@gmail.com',
+    'anshor@gmail.com'
+];
+
 $isWaliKelas = (
     $role === 'guru'
-    && !empty($_SESSION['is_wali_kelas'])
+    && (
+        !empty($_SESSION['is_wali_kelas'])
+        || in_array($email, $emailWaliKelas, true)
+    )
 );
 
 $isGuruBiasa = (
@@ -81,7 +91,7 @@ $totalPelanggaran = hitungData($koneksi, 't_pelanggaran_siswa');
         }
 
         /* SIDEBAR */
-        .sidebar {
+        .sidebar { position: sticky; top: 0; height: 100vh; align-self: flex-start; overflow-y: auto;
             background: #172554;
             color: white;
             min-height: 100vh;
@@ -291,7 +301,7 @@ $totalPelanggaran = hitungData($koneksi, 't_pelanggaran_siswa');
         }
 
         @media (max-width: 767px) {
-            .sidebar {
+            .sidebar { position: static; height: auto; overflow-y: visible; align-self: auto;
                 min-height: auto;
             }
 
@@ -324,7 +334,7 @@ $totalPelanggaran = hitungData($koneksi, 't_pelanggaran_siswa');
 
             <aside class="col-md-3 col-lg-2 sidebar">
 
-                <h4>My Website</h4>
+                <h4 class="sidebar-title">My Website</h4>
 
                 <nav class="nav flex-column">
 
@@ -377,10 +387,56 @@ $totalPelanggaran = hitungData($koneksi, 't_pelanggaran_siswa');
 
         <?php else: ?>
 
-            <?php
-            $menu_aktif = 'Dashboard';
-            include 'includes/crud_sidebar.php';
-            ?>
+            <!-- SIDEBAR GURU DAN WALI KELAS -->
+
+            <aside class="col-md-3 col-lg-2 sidebar">
+
+                <h4 class="sidebar-title">Panel Guru</h4>
+
+                <nav class="nav flex-column">
+
+                    <a href="dashboard.php" class="nav-link active">
+                        ⌂ Dashboard
+                    </a>
+
+                    <a href="catatan_pelanggaran.php" class="nav-link">
+                        ✎ Catatan Pelanggaran
+                    </a>
+
+                    <a href="tindakan.php" class="nav-link">
+                        ⚑ Tindakan
+                    </a>
+
+                    <a href="riwayat_pelanggaran.php" class="nav-link">
+                        ☰ Riwayat Pelanggaran
+                    </a>
+
+                    <?php if ($isWaliKelas): ?>
+
+                        <a href="laporan.php" class="nav-link">
+                            ▤ Laporan
+                        </a>
+
+                    <?php endif; ?>
+
+                    <a href="rekap_point.php" class="nav-link">
+                        ★ Rekap Poin
+                    </a>
+
+                    <a href="tentang_saya.php" class="nav-link">
+                        ℹ About Me
+                    </a>
+
+                    <hr>
+
+                    <a href="logout.php"
+                       class="nav-link logout"
+                       onclick="return confirm('Yakin ingin logout?')">
+                        ⇥ Logout
+                    </a>
+
+                </nav>
+            </aside>
 
         <?php endif; ?>
 
@@ -505,9 +561,7 @@ $totalPelanggaran = hitungData($koneksi, 't_pelanggaran_siswa');
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <div class="stat-label">
-                                        Catatan Pelanggaran
-                                    </div>
+                                    <div class="stat-label">Catatan Pelanggaran</div>
                                     <h2 class="stat-number">
                                         <?= $totalPelanggaran; ?>
                                     </h2>
@@ -604,9 +658,7 @@ $totalPelanggaran = hitungData($koneksi, 't_pelanggaran_siswa');
 
                 <div class="section-card">
 
-                    <h5 class="section-title">
-                        Menu Guru
-                    </h5>
+                    <h5 class="section-title">Menu Guru</h5>
 
                     <div class="row g-3">
 
@@ -662,9 +714,7 @@ $totalPelanggaran = hitungData($koneksi, 't_pelanggaran_siswa');
 
                 <div class="section-card">
 
-                    <h5 class="section-title">
-                        Menu Wali Kelas
-                    </h5>
+                    <h5 class="section-title">Menu Wali Kelas</h5>
 
                     <div class="row g-3">
 

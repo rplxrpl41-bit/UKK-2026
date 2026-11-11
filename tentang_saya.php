@@ -1,17 +1,25 @@
+
 <?php
 include 'includes/cek_session.php';
 ?>
+
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>About Me | Zulfan</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
-          rel="stylesheet">
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
 
     <style>
+        <?php include 'includes/crud_style.php'; ?>
+
         body {
             background: #f4f6f9;
             font-family: Arial, sans-serif;
@@ -19,53 +27,13 @@ include 'includes/cek_session.php';
             margin: 0;
         }
 
-        /* SIDEBAR */
-        .sidebar {
-            background: #172554;
-            color: white;
-            min-height: 100vh;
-            padding: 22px 15px;
-        }
-
-        .sidebar-title {
-            font-size: 20px;
-            font-weight: bold;
-            margin-bottom: 30px;
-            padding: 0 10px;
-            line-height: 1.5;
-        }
-
-        .sidebar .nav-link {
-            color: #e2e8f0;
-            padding: 12px 14px;
-            margin-bottom: 6px;
-            border-radius: 6px;
-            transition: 0.2s;
-        }
-
-        .sidebar .nav-link:hover {
-            background: #263b70;
-            color: white;
-        }
-
-        .sidebar .nav-link.active {
-            background: #3157d5;
-            color: white;
-        }
-
-        .sidebar .nav-link.logout {
-            color: #fca5a5;
-        }
-
-        .sidebar hr {
-            border-color: #64748b;
-        }
-
-        /* KONTEN */
-        .main-content {
+        /* KONTEN UTAMA */
+        .content {
             padding: 28px;
+            min-height: 100vh;
         }
 
+        /* KARTU PROFIL */
         .profile-card {
             background: white;
             border-radius: 25px;
@@ -76,6 +44,7 @@ include 'includes/cek_session.php';
             box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
         }
 
+        /* IKON PROFIL */
         .profile-icon {
             width: 120px;
             height: 120px;
@@ -90,6 +59,7 @@ include 'includes/cek_session.php';
             margin: 0 auto 20px;
         }
 
+        /* SUBTITLE */
         .subtitle {
             color: #2563eb;
             font-weight: bold;
@@ -97,6 +67,7 @@ include 'includes/cek_session.php';
             font-size: 13px;
         }
 
+        /* INFORMASI PROFIL */
         .info-box {
             background: #f1f5f9;
             border-radius: 12px;
@@ -104,6 +75,7 @@ include 'includes/cek_session.php';
             margin-bottom: 12px;
         }
 
+        /* TOMBOL */
         .btn-custom {
             background: #2563eb;
             color: white;
@@ -118,12 +90,9 @@ include 'includes/cek_session.php';
             color: white;
         }
 
+        /* RESPONSIVE */
         @media (max-width: 767px) {
-            .sidebar {
-                min-height: auto;
-            }
-
-            .main-content {
+            .content {
                 padding: 18px;
             }
 
@@ -139,74 +108,26 @@ include 'includes/cek_session.php';
 <div class="container-fluid">
     <div class="row">
 
-        <!-- SIDEBAR -->
-<?php if (($_SESSION['role'] ?? '') === 'guru'): ?>
-        <?php $menu_aktif = 'About Me'; include 'includes/crud_sidebar.php'; ?>
-        <?php else: ?>
-        <aside class="col-md-3 col-lg-2 sidebar">
+        <!-- SIDEBAR KIRI -->
+        <div class="col-md-3 col-lg-2 p-0">
+            <?php
+            $menu_aktif = 'About Me';
+            include 'includes/crud_sidebar.php';
+            ?>
+        </div>
 
-            <div class="sidebar-title">
-                Sistem Pelanggaran
-            </div>
-
-            <nav class="nav flex-column">
-
-                <a href="dashboard.php" class="nav-link">
-                    ⌂ Dashboard
-                </a>
-
-                <a href="kelola_siswa.php" class="nav-link">
-                    ♟ Data Siswa
-                </a>
-
-                <a href="kelola_guru.php" class="nav-link">
-                    ♟ Data Guru
-                </a>
-
-                <a href="kelola_kelas.php" class="nav-link">
-                    ▦ Data Kelas
-                </a>
-
-                <a href="kelola_tahun_ajaran.php" class="nav-link">
-                    ◷ Kelola Tahun Ajaran
-                </a>
-
-                <a href="kelola_wali_kelas.php" class="nav-link">
-                    ♙ Kelola Wali Kelas
-                </a>
-
-                <a href="kelola_penempatan_siswa.php" class="nav-link">
-                    ⇄ Penempatan Siswa
-                </a>
-
-                <a href="kelola_kategori_pelanggaran.php" class="nav-link">
-                    ☷ Kategori Pelanggaran
-                </a>
-
-                <a href="tentang_saya.php" class="nav-link active">
-                    ℹ About Me
-                </a>
-
-                <hr>
-
-                <a href="logout.php"
-                   class="nav-link logout"
-                   onclick="return confirm('Yakin ingin logout?')">
-                    ⇥ Logout
-                </a>
-
-            </nav>
-        </aside>
-        <?php endif; ?>
-
-        <!-- KONTEN UTAMA -->
-        <main class="col-md-9 col-lg-10 main-content">
+        <!-- KONTEN KANAN -->
+        <main class="col-md-9 col-lg-10 content">
 
             <div class="profile-card text-center">
 
-                <div class="profile-icon">Z</div>
+                <div class="profile-icon">
+                    Z
+                </div>
 
-                <p class="subtitle mb-2">ABOUT ME</p>
+                <p class="subtitle mb-2">
+                    ABOUT ME
+                </p>
 
                 <h1 class="fw-bold">
                     Muhammad Zulfan Nuralfansyah
@@ -222,8 +143,10 @@ include 'includes/cek_session.php';
                     👋 Perkenalkan, Saya!
                 </h4>
 
-                <p class="text-secondary text-start"
-                   style="line-height: 1.9;">
+                <p
+                    class="text-secondary text-start"
+                    style="line-height: 1.9;"
+                >
                     Halo semuanya! Perkenalkan, nama saya
                     <b>Muhammad Zulfan Nuralfansyah</b>,
                     siswa kelas XII RPL 1. Saya merupakan siswa
@@ -238,41 +161,60 @@ include 'includes/cek_session.php';
                     pemrograman, desain web, serta pengembangan
                     aplikasi. Saya percaya bahwa kerja keras,
                     kreativitas, dan kemauan untuk terus belajar
-                    merupakan kunci untuk meraih masa depan yang lebih baik.
+                    merupakan kunci untuk meraih masa depan yang
+                    lebih baik.
                 </p>
 
+                <!-- INFORMASI PROFIL -->
                 <div class="text-start mt-4">
+
                     <div class="info-box">
-                        <strong>👤 Nama Lengkap</strong>
+                        <strong>
+                            👤 Nama Lengkap
+                        </strong>
+
                         <div class="text-secondary">
                             Muhammad Zulfan Nuralfansyah
                         </div>
                     </div>
 
                     <div class="info-box">
-                        <strong>🎓 Kelas</strong>
+                        <strong>
+                            🎓 Kelas
+                        </strong>
+
                         <div class="text-secondary">
                             XII RPL 1
                         </div>
                     </div>
 
                     <div class="info-box">
-                        <strong>💻 Bidang yang Dipelajari</strong>
+                        <strong>
+                            💻 Bidang yang Dipelajari
+                        </strong>
+
                         <div class="text-secondary">
                             Pemrograman, Web Development, dan Teknologi
                         </div>
                     </div>
+
                 </div>
 
+                <!-- MOTIVASI -->
                 <p class="fst-italic text-secondary mt-4">
                     "Terus belajar, berani mencoba, dan jangan pernah
                     berhenti berkembang."
                 </p>
 
-                <a href="dashboard.php" class="btn-custom mt-2">
+                <!-- TOMBOL KEMBALI -->
+                <a
+                    href="dashboard.php"
+                    class="btn-custom mt-2"
+                >
                     ← Kembali ke Dashboard
                 </a>
 
+                <!-- FOOTER -->
                 <p class="text-secondary small mt-4 mb-0">
                     &copy; 2026 Muhammad Zulfan Nuralfansyah
                 </p>

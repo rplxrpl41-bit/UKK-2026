@@ -1,9 +1,9 @@
-
 <?php
 
 // =====================================
 // MULAI SESSION
 // =====================================
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -11,27 +11,56 @@ if (session_status() === PHP_SESSION_NONE) {
 // =====================================
 // CEK LOGIN
 // =====================================
-if (
-    !isset($_SESSION['login'])
-    || $_SESSION['login'] !== true
-) {
+
+// Login terbaru menggunakan user_id.
+// login=true tetap didukung untuk kompatibilitas
+// dengan sistem login versi sebelumnya.
+
+$sudah_login = (
+    !empty($_SESSION['user_id'])
+    || (
+        isset($_SESSION['login'])
+        && $_SESSION['login'] === true
+    )
+);
+
+if (!$sudah_login) {
     header('Location: login.php');
     exit;
 }
 
 // =====================================
-// AMBIL DATA ROLE
+// AMBIL DATA PENGGUNA
 // =====================================
-$role = $_SESSION['role'] ?? '';
+
+$role = strtolower(trim($_SESSION['role'] ?? ''));
+
+$email = strtolower(
+    trim($_SESSION['email'] ?? '')
+);
+
+// =====================================
+// CEK WALI KELAS BERDASARKAN EMAIL
+// =====================================
+
+$email_wali_kelas = [
+    'ari@gmail.com',
+    'aldi@gmail.com',
+    'anshor@gmail.com'
+];
 
 $is_wali_kelas = (
     $role === 'guru'
-    && !empty($_SESSION['is_wali_kelas'])
+    && (
+        !empty($_SESSION['is_wali_kelas'])
+        || in_array($email, $email_wali_kelas, true)
+    )
 );
 
 // =====================================
 // HALAMAN YANG BOLEH DIAKSES GURU
 // =====================================
+
 $halaman_guru = [
 
     'dashboard.php',
@@ -42,6 +71,8 @@ $halaman_guru = [
 
     'riwayat_pelanggaran.php',
 
+    'rekap_poin.php',
+
     'rekap_point.php',
 
     'tentang_saya.php',
@@ -50,6 +81,7 @@ $halaman_guru = [
 // =====================================
 // HALAMAN KHUSUS WALI KELAS
 // =====================================
+
 $halaman_wali_kelas = [
 
     'laporan.php',
@@ -58,18 +90,19 @@ $halaman_wali_kelas = [
 // =====================================
 // CEK HAK AKSES GURU
 // =====================================
+
 if ($role === 'guru') {
 
     $halaman_sekarang = basename($_SERVER['PHP_SELF']);
 
-    // Default: halaman umum Guru
+    // Halaman umum Guru
     $boleh_akses = in_array(
         $halaman_sekarang,
         $halaman_guru,
         true
     );
 
-    // Tambahan akses khusus Wali Kelas
+    // Wali Kelas mendapatkan akses tambahan
     if (
         $is_wali_kelas
         && in_array(
@@ -82,79 +115,16 @@ if ($role === 'guru') {
     }
 
     // =====================================
-    // TOLAK AKSES JIKA TIDAK DIIZINKAN
+    // JIKA AKSES TIDAK DIIZINKAN
     // =====================================
+
     if (!$boleh_akses) {
 
         http_response_code(403);
 
-        ?>
-        <!DOCTYPE html>
-        <html lang="id">
-
-        <head>
-
-            <meta charset="UTF-8">
-
-            <meta name="viewport" content="width=device-width, initial-scale=1">
-
-            <title>Akses Ditolak</title>
-
-            <link
-                href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
-                rel="stylesheet"
-            >
-
-        </head>
-
-        <body class="bg-light">
-
-            <div class="container py-5">
-
-                <div class="row justify-content-center">
-
-                    <div class="col-md-7">
-
-                        <div class="card shadow-sm border-0">
-
-                            <div class="card-body text-center p-5">
-
-                                <h1 class="text-danger mb-3">
-                                    403
-                                </h1>
-
-                                <h4 class="mb-3">
-                                    Akses Ditolak!
-                                </h4>
-
-                                <p class="text-muted">
-                                    Maaf, akun Anda tidak memiliki
-                                    izin untuk membuka halaman ini.
-                                </p>
-
-                                <a
-                                    href="dashboard.php"
-                                    class="btn btn-primary"
-                                >
-                                    Kembali ke Dashboard
-                                </a>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </body>
-
-        </html>
-        <?php
-
-        exit;
+        exit(
+            'Akses ditolak! Akun Anda tidak memiliki izin untuk membuka halaman ini.'
+        );
     }
 }
 
