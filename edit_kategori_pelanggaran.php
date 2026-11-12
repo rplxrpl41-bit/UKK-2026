@@ -104,14 +104,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <main class="col-md-9 col-lg-10 main-content">
             <h1 class="page-title">Edit Kategori Pelanggaran</h1>
-            <p class="page-description">Perbarui nama, deskripsi, dan status kategori.</p>
+            <p class="page-description">Perbarui nama, deskripsi, dan status kategori pelanggaran.</p>
 
-            <?php if ($error !== ''): ?>
-                <div class="alert alert-danger"><?= e($error) ?></div>
-            <?php endif; ?>
+            <div class="content-card edit-form">
+                <h5 class="section-title mb-4">Form Edit Kategori Pelanggaran</h5>
 
-            <div class="content-card">
-                <form method="POST">
+                <?php if ($error !== ''): ?>
+                    <div class="alert alert-danger"><?= e($error) ?></div>
+                <?php endif; ?>
+
+                <form method="POST" action="edit_kategori_pelanggaran.php?id=<?= $id ?>">
+                    <input type="hidden" name="id" value="<?= $id ?>">
+
                     <div class="mb-3">
                         <label class="form-label" for="nama">Nama Kategori</label>
                         <input type="text" name="nama" id="nama" class="form-control"
@@ -132,12 +136,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </select>
                     </div>
 
-                    <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
-                    <a href="kelola_kategori_pelanggaran.php" class="btn btn-secondary">Batal</a>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                        <a href="kelola_kategori_pelanggaran.php" class="btn btn-secondary">Batal</a>
+                    </div>
                 </form>
             </div>
         </main>
     </div>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

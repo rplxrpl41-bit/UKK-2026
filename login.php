@@ -9,7 +9,6 @@ if (isset($_SESSION['login']) && $_SESSION['login'] === true) {
 }
 
 $error = '';
-
 if (isset($_SESSION['pesan_error'])) {
     $error = $_SESSION['pesan_error'];
     unset($_SESSION['pesan_error']);
