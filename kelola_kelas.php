@@ -1,371 +1,216 @@
 <?php
-session_start();
+// kelola_kelas.php
 
 include 'includes/cek_session.php';
 include 'config/koneksi.php';
 
-// Hanya admin
-if (($_SESSION['role'] ?? '') !== 'admin') {
-    http_response_code(403);
-    exit('Akses ditolak!');
-}
-
-// Ambil SEMUA kelas yang terdaftar (kelas baru dari "Tambah Kelas"
-// langsung muncul di sini).
-$sql = "SELECT
-            k.id,
-            k.nama,
-            k.tingkat,
-            k.jurusan,
-            k.status_aktif,
-            (
-                SELECT COUNT(DISTINCT ks.siswa_id)
-                FROM t_kelas_siswa ks
-                WHERE ks.kelas_id = k.id
-                  AND ks.status_aktif = 1
-            ) AS jumlah_siswa
-        FROM t_kelas k
-        ORDER BY
-            FIELD(k.tingkat, 'X', 'XI', 'XII'),
-            k.jurusan ASC,
-            k.id ASC";
-
-$query = mysqli_query($koneksi, $sql);
-
-if (!$query) {
-    die('Query gagal: ' . mysqli_error($koneksi));
-}
-
-function e($nilai)
-{
-    return htmlspecialchars((string)($nilai ?? ''), ENT_QUOTES, 'UTF-8');
-}
-
-$jumlah_kelas = mysqli_num_rows($query);
+$sql = "SELECT * FROM t_kelas ORDER BY nama ASC";
+$hasil = mysqli_query($koneksi, $sql);
 ?>
 
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kelola Data Kelas</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.datatables.net/2.3.4/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <title>Kelola Kelas</title>
 
-    <style>
-        body {
-            margin: 0;
-            background: #f4f6f9;
-            font-family: Arial, sans-serif;
-            color: #1e293b;
-        }
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+          rel="stylesheet">
 
-        .sidebar { position: sticky; top: 0; height: 100vh; align-self: flex-start; overflow-y: auto;
-            background: #172554;
-            color: white;
-            min-height: 100vh;
-            padding: 22px 15px;
-        }
-
-        .sidebar-title {
-            font-size: 20px;
-            font-weight: bold;
-            margin-bottom: 30px;
-            padding: 0 10px;
-            line-height: 1.5;
-        }
-
-        .sidebar .nav-link {
-            color: #e2e8f0;
-            padding: 12px 14px;
-            margin-bottom: 6px;
-            border-radius: 6px;
-        }
-
-        .sidebar .nav-link:hover {
-            background: #263b70;
-            color: white;
-        }
-
-        .sidebar .nav-link.active {
-            background: #3157d5;
-            color: white;
-        }
-
-        .sidebar .nav-link.logout {
-            color: #fca5a5;
-        }
-
-        .sidebar hr {
-            border-color: #64748b;
-        }
-
-        .main-content {
-            padding: 28px;
-        }
-
-        .page-title {
-            color: #172554;
-            font-size: 28px;
-            font-weight: bold;
-            margin-bottom: 6px;
-        }
-
-        .page-description {
-            color: #64748b;
-            margin-bottom: 25px;
-        }
-
-        .content-card {
-            background: white;
-            border-radius: 12px;
-            padding: 24px;
-            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
-        }
-
-        .section-title {
-            color: #172554;
-            font-size: 19px;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        .btn-primary {
-            background: #3157d5;
-            border-color: #3157d5;
-        }
-
-        .btn-primary:hover {
-            background: #2546b8;
-            border-color: #2546b8;
-        }
-
-        #tabelKelas thead th {
-            background: #172554;
-            color: white;
-            vertical-align: middle;
-            white-space: nowrap;
-        }
-
-        #tabelKelas tbody td {
-            vertical-align: middle;
-        }
-
-        .table-responsive {
-            margin-top: 20px;
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 6px 11px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-            background: #dcfce7;
-            color: #166534;
-        }
-
-        .status-badge.status-nonaktif {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        .footer-text {
-            color: #94a3b8;
-            font-size: 13px;
-            margin-top: 25px;
-        }
-
-        @media (max-width: 767px) {
-            .sidebar { position: static; height: auto; overflow-y: visible; align-self: auto;
-                min-height: auto;
-            }
-
-            .main-content {
-                padding: 18px;
-            }
-
-            .content-card {
-                padding: 15px;
-            }
-
-            .page-title {
-                font-size: 24px;
-            }
-        }
-    </style>
+    <!-- DataTables Bootstrap 5 -->
+    <link href="https://cdn.datatables.net/2.3.4/css/dataTables.bootstrap5.min.css"
+          rel="stylesheet">
+    <link href="asset/zulfan.css" rel="stylesheet">
 </head>
 
 <body>
+
 <div class="container-fluid">
     <div class="row">
 
-        <aside class="col-md-3 col-lg-2 sidebar">
-            <div class="sidebar-title">Sistem Pelanggaran</div>
+        <?php include 'layout/sidebar.php'; ?>
 
-            <nav class="nav flex-column">
-                <a href="dashboard.php" class="nav-link">⌂ Dashboard</a>
-                <a href="kelola_siswa.php" class="nav-link">♟ Data Siswa</a>
-                <a href="kelola_guru.php" class="nav-link">♟ Data Guru</a>
-                <a href="kelola_kelas.php" class="nav-link active">▦ Data Kelas</a>
-                <a href="kelola_tahun_ajaran.php" class="nav-link">◷ Kelola Tahun Ajaran</a>
-                <a href="kelola_wali_kelas.php" class="nav-link">♙ Kelola Wali Kelas</a>
-                <a href="kelola_penempatan_siswa.php" class="nav-link">⇄ Penempatan Siswa</a>
-                <a href="kelola_kategori_pelanggaran.php" class="nav-link">☷ Kategori Pelanggaran</a>
-                <a href="tentang_saya.php" class="nav-link">ℹ About Me</a>
+        <!-- KONTEN -->
+        <main class="col-md-9 col-lg-10 content">
 
-                <hr>
-
-                <a href="logout.php"
-                   class="nav-link logout"
-                   onclick="return confirm('Yakin ingin logout?')">
-                    ⇥ Logout
-                </a>
-            </nav>
-        </aside>
-
-        <main class="col-md-9 col-lg-10 main-content">
-
-            <h1 class="page-title">Kelola Data Kelas</h1>
-            <p class="page-description">
-                Kelola seluruh data kelas yang terdaftar di sekolah.
-            </p>
-
-            <div class="content-card">
-
-                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-                    <div>
-                        <h5 class="section-title">Data Kelas</h5>
-                        <small class="text-muted">
-                            Daftar seluruh kelas
-                        </small>
-                    </div>
-
-                    <a href="tambah_kelas.php" class="btn btn-primary">
-                        + Tambah Kelas
-                    </a>
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="page-title">Kelola Kelas</h2>
+                    <p class="text-muted mb-0">Kelola data kelas yang tersedia.</p>
                 </div>
-
-                <?php if (($_GET['pesan'] ?? '') === 'sukses' && !isset($_SESSION['pesan'])): ?>
-                    <div class="alert alert-success mt-3">
-                        Data kelas berhasil ditambahkan.
-                    </div>
-                <?php endif; ?>
-
-                <?php if (isset($_SESSION['pesan'])): ?>
-                    <div class="alert alert-info mt-3">
-                        <?= e($_SESSION['pesan']); ?>
-                    </div>
-                    <?php unset($_SESSION['pesan']); ?>
-                <?php endif; ?>
-
-                <div class="table-responsive">
-                    <table id="tabelKelas"
-                           class="table table-bordered table-striped table-hover"
-                           style="width:100%">
-
-                        <thead>
-                            <tr>
-                                <th>No</th>
-                                <th>Nama Kelas</th>
-                                <th>Tingkat</th>
-                                <th>Jurusan</th>
-                                <th>Jumlah Siswa</th>
-                                <th>Status</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-
-                        <tbody>
-                            <?php
-                            $no = 1;
-
-                            while ($data = mysqli_fetch_assoc($query)):
-                            ?>
-                                <tr>
-                                    <td><?= $no++; ?></td>
-                                    <td>
-                                        <strong>
-                                            <?= e($data['tingkat'] . ' ' . $data['jurusan']); ?>
-                                        </strong>
-                                    </td>
-                                    <td><?= e($data['tingkat']); ?></td>
-                                    <td><?= e($data['jurusan']); ?></td>
-                                    <td>
-                                        <strong><?= (int)$data['jumlah_siswa']; ?></strong>
-                                        Siswa
-                                    </td>
-                                    <td>
-                                        <?php if ((int)$data['status_aktif'] === 1): ?>
-                                            <span class="status-badge">Aktif</span>
-                                        <?php else: ?>
-                                            <span class="status-badge status-nonaktif">Tidak Aktif</span>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td class="text-nowrap">
-                                        <a href="edit_kelas.php?id=<?= (int)$data['id']; ?>"
-                                           class="btn btn-warning btn-sm">
-                                            Edit
-                                        </a>
-                                        <a href="hapus_kelas.php?id=<?= (int)$data['id']; ?>"
-                                           class="btn btn-danger btn-sm"
-                                           onclick="return confirm('Yakin ingin menghapus kelas ini?')">
-                                            Hapus
-                                        </a>
-                                    </td>
-                                </tr>
-                            <?php endwhile; ?>
-                        </tbody>
-
-                    </table>
-                </div>
-
+                <a href="tambah_kelas.php" class="btn btn-primary mt-3 mt-md-0"> + Tambah Kelas </a>
             </div>
 
-            <p class="footer-text">
-                Sistem Informasi Pelanggaran Siswa &copy; 2026
-            </p>
+            <!-- Tombol Navigasi -->
+            
+
+            <!-- Notifikasi Sukses -->
+            <?php if (isset($_SESSION['pesan_sukses'])) { ?>
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <?= htmlspecialchars($_SESSION['pesan_sukses']); ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <?php unset($_SESSION['pesan_sukses']); ?>
+            <?php } ?>
+
+            <!-- Notifikasi Error -->
+            <?php if (isset($_SESSION['pesan_error'])) { ?>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <?= htmlspecialchars($_SESSION['pesan_error']); ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <?php unset($_SESSION['pesan_error']); ?>
+            <?php } ?>
+
+            <!-- TABEL KELAS -->
+            <div class="card card-main">
+
+                <div class="card-body">
+                    <h5 class="fw-bold mb-3">Daftar Data Kelas</h5>
+
+                    <div class="table-responsive">
+
+                        <table id="tabelKelas"
+                               class="table table-striped table-bordered table-hover align-middle w-100">
+
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>No</th>
+                                    <th>Nama Kelas</th>
+                                    <th>Tingkat</th>
+                                    <th>Jurusan</th>
+                                    <th>Status Aktif</th>
+                                    <th>Dibuat</th>
+                                    <th>Diubah</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                <?php
+                                $no = 1;
+
+                                if ($hasil && mysqli_num_rows($hasil) > 0) {
+                                    while ($row = mysqli_fetch_assoc($hasil)) {
+                                ?>
+                                    <tr>
+                                        <td><?= $no++; ?></td>
+
+                                        <td>
+                                            <?= htmlspecialchars($row['nama'] ?? ''); ?>
+                                        </td>
+
+                                        <td>
+                                            <?= htmlspecialchars($row['tingkat'] ?? ''); ?>
+                                        </td>
+
+                                        <td>
+                                            <?= htmlspecialchars($row['jurusan'] ?? ''); ?>
+                                        </td>
+
+                                        <td>
+                                            <?php if ($row['status_aktif'] == 1) { ?>
+                                                <span class="badge bg-success">Aktif</span>
+                                            <?php } else { ?>
+                                                <span class="badge bg-secondary">Tidak Aktif</span>
+                                            <?php } ?>
+                                        </td>
+
+                                        <td>
+                                            <?= htmlspecialchars($row['created_at'] ?? '-'); ?>
+                                        </td>
+
+                                        <td>
+                                            <?= htmlspecialchars($row['updated_at'] ?? '-'); ?>
+                                        </td>
+
+                                        <td>
+                                            <div class="d-flex gap-2">
+                                                <a href="edit_kelas.php?id=<?= (int) $row['id']; ?>"
+                                                   class="btn btn-warning btn-sm">
+                                                    Edit
+                                                </a>
+
+                                                <a href="hapus_kelas.php?id=<?= (int) $row['id']; ?>"
+                                                   class="btn btn-danger btn-sm"
+                                                   onclick="return confirm('Yakin ingin menghapus data kelas ini?');">
+                                                    Hapus
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php
+                                    }
+                                }
+                                ?>
+                            </tbody>
+
+                        </table>
+
+                    </div>
+                </div>
+            </div>
+
+                    <a href="dashboard.php" class="btn btn-secondary btn-sm mt-3">
+                Kembali ke Dashboard
+            </a>
 
         </main>
     </div>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<!-- Bootstrap 5 JavaScript -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+<!-- DataTables -->
 <script src="https://cdn.datatables.net/2.3.4/js/dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/2.3.4/js/dataTables.bootstrap5.min.js"></script>
 
+<!-- Konfigurasi DataTables -->
 <script>
 $(document).ready(function () {
     $('#tabelKelas').DataTable({
-        pageLength: 10,
-        lengthMenu: [10, 25, 50, 100],
-        order: [],
-        scrollX: true,
-        columnDefs: [{ orderable: false, targets: -1 }],
         language: {
-            search: 'Cari:',
-            lengthMenu: 'Tampilkan _MENU_ data',
-            info: 'Menampilkan _START_ sampai _END_ dari _TOTAL_ data',
-            infoEmpty: 'Tidak ada data kelas',
-            zeroRecords: 'Kelas tidak ditemukan',
-            emptyTable: 'Belum ada data kelas',
+            search: "Cari:",
+            lengthMenu: "Tampilkan _MENU_ data",
+            info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+            infoEmpty: "Menampilkan 0 sampai 0 dari 0 data",
+            infoFiltered: "(difilter dari _MAX_ total data)",
+            zeroRecords: "Data kelas tidak ditemukan",
+            emptyTable: "Belum ada data kelas",
+
             paginate: {
-                first: 'Pertama',
-                last: 'Terakhir',
-                next: 'Berikutnya',
-                previous: 'Sebelumnya'
+                first: "Pertama",
+                last: "Terakhir",
+                next: "Berikutnya",
+                previous: "Sebelumnya"
             }
-        }
+        },
+
+        pageLength: 10,
+        lengthMenu: [5, 10, 25, 50, 100],
+
+        // Urutkan berdasarkan nama kelas
+        order: [[2, 'asc']],
+
+        // Kolom aksi tidak bisa diurutkan atau dicari
+        columnDefs: [
+    {
+        targets: 7,
+        orderable: false,
+        searchable: false
+    }
+]
     });
 });
 </script>
 
 </body>
 </html>
-
-<?php
-mysqli_free_result($query);
-?>

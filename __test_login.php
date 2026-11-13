@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($user && password_verify($password, $user['password'])) {
 
             // Hanya admin dan guru yang boleh login
-            if (!in_array($user['role'], ['admin', 'guru'], true)) {
+            if (!in_array($user['role'], ['admin', 'guru', 'walikelas'], true)) {
                 $error = "Role pengguna tidak diizinkan!";
             } else {
 

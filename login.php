@@ -1,13 +1,14 @@
-﻿<?php
+<?php
+// login.php
 session_start();
-include 'config/koneksi.php';
 
-// Lamun geus login, arahkeun ka dashboard
-if (isset($_SESSION['login']) && $_SESSION['login'] === true) {
+// Jika sudah login, arahkan ke dashboard
+if (isset($_SESSION['id_user'])) {
     header("Location: dashboard.php");
     exit;
 }
 
+// Ambil pesan error (jika ada)
 $error = '';
 if (isset($_SESSION['pesan_error'])) {
     $error = $_SESSION['pesan_error'];
@@ -19,7 +20,7 @@ if (isset($_SESSION['pesan_error'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login | Sistem Pelanggaran Siswa</title>
+    <title>Login - Pelanggaran Siswa</title>
 
     <style>
         * {
@@ -308,13 +309,13 @@ if (isset($_SESSION['pesan_error'])) {
         <div class="info-footer">
             &copy; <?php echo date('Y'); ?>
             Sistem Informasi Pelanggaran Siswa
-            <br>UKK RPL
+            <br>UKK RPL 2026
         </div>
     </section>
 
     <section class="login-form">
         <div class="form-heading">
-            <h2>Wilujeng Sumping!</h2>
+            <h2>Selamat Datang!</h2>
             <p>Silakan login menggunakan email dan password akun Anda.</p>
         </div>
 

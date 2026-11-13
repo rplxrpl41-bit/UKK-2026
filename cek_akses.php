@@ -23,7 +23,7 @@ $aksesGuru = [
     'kelola_kategori_pelanggaran.php', 'laporan.php'
 ];
 
-$izin = $role === 'admin' ? $aksesAdmin : ($role === 'guru' ? $aksesGuru : []);
+$izin = $role === 'admin' ? $aksesAdmin : (in_array($role, ['guru', 'walikelas'], true) ? $aksesGuru : []);
 
 if (!in_array($halaman, $izin, true)) {
     http_response_code(403);

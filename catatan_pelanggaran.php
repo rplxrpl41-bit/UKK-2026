@@ -23,7 +23,7 @@ function e($nilai)
 
 $role = strtolower(trim($_SESSION['role'] ?? ''));
 
-if (!in_array($role, ['admin', 'guru'], true)) {
+if (!in_array($role, ['admin', 'guru', 'walikelas'], true)) {
     http_response_code(403);
     exit('Akses ditolak!');
 }
@@ -402,7 +402,7 @@ $sqlTerbaru = "
 $tipe_batas = '';
 $param_batas = [];
 
-if ($role === 'guru') {
+if (in_array($role, ['guru', 'walikelas'], true)) {
 
     if (!$guru_id || $guru_id <= 0) {
         die('Data guru yang sedang login tidak ditemukan.');

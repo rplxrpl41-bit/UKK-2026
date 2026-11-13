@@ -86,7 +86,7 @@ if ($_SESSION['role'] === "admin") {
     </div>
 
 <?php
-} elseif ($_SESSION['role'] === "guru") {
+} elseif (in_array($_SESSION['role'] ?? "", ["guru", "walikelas"], true)) {
 ?>
 
     <!-- SIDEBAR GURU -->

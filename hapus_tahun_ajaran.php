@@ -1,62 +1,96 @@
+
 <?php
+// hapus_tahun_ajaran.php
+
+session_start();
+
 include 'includes/cek_session.php';
 include 'config/koneksi.php';
 
-if (($_SESSION['role'] ?? '') !== 'admin') {
-    http_response_code(403);
-    exit("Akses ditolak!");
-}
+// Ambil ID dari URL
+$id = $_GET['id'] ?? '';
 
-$id = (int) ($_GET['id'] ?? 0);
-
-if ($id <= 0) {
-    $_SESSION['pesan'] = "ID tahun ajaran tidak valid!";
-    header("Location: kelola_tahun_ajaran.php");
+if (!ctype_digit((string) $id) || $id === '') {
+    header('Location: kelola_tahun_ajaran.php');
     exit;
 }
 
-mysqli_begin_transaction($koneksi);
+// Ambil nama tahun ajaran sebelum dihapus
+$stmt = mysqli_prepare(
+    $koneksi,
+    "SELECT nama FROM t_tahun_ajaran WHERE id = ?"
+);
 
-try {
-    // Lepaskan referensi dari catatan pelanggaran agar data riwayat tetap ada.
-    $stmt = mysqli_prepare(
-        $koneksi,
-        "UPDATE t_pelanggaran_siswa SET tahun_ajaran_id = NULL WHERE tahun_ajaran_id = ?"
-    );
+mysqli_stmt_bind_param($stmt, "i", $id);
+mysqli_stmt_execute($stmt);
 
-    if ($stmt) {
-        mysqli_stmt_bind_param($stmt, "i", $id);
-        mysqli_stmt_execute($stmt);
-        mysqli_stmt_close($stmt);
+$hasil = mysqli_stmt_get_result($stmt);
+$data = mysqli_fetch_assoc($hasil);
+mysqli_stmt_close($stmt);
+
+// Periksa apakah data ditemukan
+if (!$data) {
+    echo "<script>
+        alert('Data tahun ajaran tidak ditemukan!');
+        window.location.href = 'kelola_tahun_ajaran.php';
+    </script>";
+    exit;
+}
+
+// Hapus data tahun ajaran
+$stmt = mysqli_prepare(
+    $koneksi,
+    "DELETE FROM t_tahun_ajaran WHERE id = ?"
+);
+
+mysqli_stmt_bind_param($stmt, "i", $id);
+
+if (mysqli_stmt_execute($stmt)) {
+
+    // Ambil ID pengguna yang sedang login
+    $id_user = $_SESSION['id_user'] ?? null;
+    $waktu = date('Y-m-d H:i:s');
+
+    $aktivitas = "hapus tahun ajaran: " . $data['nama'];
+
+    // Simpan aktivitas ke tabel log
+    if ($id_user !== null) {
+        $log = mysqli_prepare(
+            $koneksi,
+            "INSERT INTO tbl_log (id_user, aktivitas, waktu)
+             VALUES (?, ?, ?)"
+        );
+
+        mysqli_stmt_bind_param(
+            $log,
+            "iss",
+            $id_user,
+            $aktivitas,
+            $waktu
+        );
+
+        mysqli_stmt_execute($log);
+        mysqli_stmt_close($log);
     }
 
-    $stmt = mysqli_prepare($koneksi, "DELETE FROM t_tahun_ajaran WHERE id = ?");
-
-    if (!$stmt) {
-        throw new Exception(mysqli_error($koneksi));
-    }
-
-    mysqli_stmt_bind_param($stmt, "i", $id);
-
-    if (!mysqli_stmt_execute($stmt)) {
-        throw new Exception(mysqli_stmt_error($stmt));
-    }
-
-    $terhapus = mysqli_stmt_affected_rows($stmt);
     mysqli_stmt_close($stmt);
 
-    mysqli_commit($koneksi);
-
-    $_SESSION['pesan'] = $terhapus > 0
-        ? "Data tahun ajaran berhasil dihapus!"
-        : "Data tahun ajaran tidak ditemukan.";
-
-    header("Location: kelola_tahun_ajaran.php?pesan=hapus_berhasil");
+    echo "<script>
+        alert('Tahun ajaran berhasil dihapus!');
+        window.location.href = 'kelola_tahun_ajaran.php';
+    </script>";
     exit;
-} catch (Throwable $ex) {
-    mysqli_rollback($koneksi);
-    $_SESSION['pesan'] = "Gagal menghapus tahun ajaran: " . $ex->getMessage();
-    header("Location: kelola_tahun_ajaran.php");
+
+} else {
+
+    $pesan = mysqli_stmt_error($stmt);
+    mysqli_stmt_close($stmt);
+
+    echo "<script>
+        alert('Gagal menghapus tahun ajaran!');
+        window.location.href = 'kelola_tahun_ajaran.php';
+    </script>";
     exit;
 }
 ?>
+

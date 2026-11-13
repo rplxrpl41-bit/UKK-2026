@@ -1,177 +1,91 @@
-
 <?php
+// proses_login.php
+session_start();
+include 'config/koneksi.php';
 
-// =====================================
-// MULAI SESSION
-// =====================================
-
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
-// =====================================
-// HUBUNGKAN DATABASE
-// =====================================
-
-require_once 'config/koneksi.php';
-
-// =====================================
-// FUNGSI REDIRECT DENGAN PESAN
-// =====================================
-
-function gagal_login($pesan)
-{
-    $_SESSION['pesan_error'] = $pesan;
-
-    header('Location: login.php');
-    exit;
-}
-
-// =====================================
-// CEK METODE REQUEST
-// =====================================
-
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: login.php');
-    exit;
-}
-
-// =====================================
-// AMBIL INPUT LOGIN
-// =====================================
-
+// Ambil input
 $email = trim($_POST['email'] ?? '');
 $password = $_POST['password'] ?? '';
 
-if (!is_string($email) || !is_string($password)) {
-    gagal_login('Email atau password tidak valid.');
-}
-
-$email = strtolower($email);
-
-// =====================================
-// VALIDASI INPUT
-// =====================================
-
+// Validasi input
 if ($email === '' || $password === '') {
-    gagal_login('Email dan password wajib diisi.');
+    $_SESSION['pesan_error'] = 'Email dan password wajib diisi!';
+    header('Location: login.php');
+    exit;
 }
 
-if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    gagal_login('Format email tidak valid.');
-}
-
-// =====================================
-// CEK KONEKSI DATABASE
-// =====================================
-
-if (!isset($koneksi) || !$koneksi) {
-    gagal_login('Koneksi database gagal. Silakan hubungi administrator.');
-}
-
-// =====================================
-// CARI AKUN BERDASARKAN EMAIL
-// =====================================
-
-$sql = "
-    SELECT
-        id,
-        name,
-        email,
-        password,
-        role
-    FROM t_users
-    WHERE email = ?
-    LIMIT 1
-";
-
-$stmt = mysqli_prepare($koneksi, $sql);
-
-if (!$stmt) {
-    gagal_login('Terjadi kesalahan pada sistem login.');
-}
+// Cari pengguna berdasarkan email
+$stmt = mysqli_prepare(
+    $koneksi,
+    "SELECT * FROM t_users WHERE email = ? LIMIT 1"
+);
 
 mysqli_stmt_bind_param($stmt, "s", $email);
+mysqli_stmt_execute($stmt);
 
-if (!mysqli_stmt_execute($stmt)) {
+$hasil = mysqli_stmt_get_result($stmt);
+
+if (mysqli_num_rows($hasil) === 1) {
+
+    $data = mysqli_fetch_assoc($hasil);
+
+    if (password_verify($password, $data['password'])) {
+
+        // Buat session login
+        session_regenerate_id(true);
+
+        $_SESSION['login'] = true;
+
+        // ID pengguna
+        $_SESSION['id_user'] = (int) $data['id'];
+
+        // Session lama tetap dipertahankan
+        $_SESSION['id'] = (int) $data['id'];
+
+        // Nama pengguna
+        $_SESSION['name'] = $data['name'];
+        $_SESSION['nama'] = $data['name'];
+        $_SESSION['nama_lengkap'] = $data['name'];
+        $_SESSION['email'] = $data['email'];
+        $_SESSION['user_id'] = (int) $data['id'];
+
+        // Role pengguna. Tiga akun yang ditetapkan sebagai wali kelas
+        // selalu menggunakan role walikelas, sekaligus disimpan ke database.
+        $emailWaliKelas = ['ari@gmail.com', 'aldi@gmail.com', 'anshor@gmail.com'];
+        $roleLogin = in_array(strtolower($email), $emailWaliKelas, true)
+            ? 'walikelas'
+            : $data['role'];
+
+        if ($roleLogin !== $data['role']) {
+            $updateRole = mysqli_prepare(
+                $koneksi,
+                "UPDATE t_users SET role = ? WHERE id = ?"
+            );
+            if ($updateRole) {
+                mysqli_stmt_bind_param($updateRole, "si", $roleLogin, $data['id']);
+                mysqli_stmt_execute($updateRole);
+                mysqli_stmt_close($updateRole);
+            }
+        }
+
+        $_SESSION['role'] = $roleLogin;
+
+        mysqli_stmt_close($stmt);
+
+        header('Location: dashboard.php');
+        exit;
+
+    } else {
+        $_SESSION['pesan_error'] = 'Password salah!';
+        mysqli_stmt_close($stmt);
+        header('Location: login.php');
+        exit;
+    }
+
+} else {
+    $_SESSION['pesan_error'] = 'Email tidak ditemukan!';
     mysqli_stmt_close($stmt);
-
-    gagal_login('Terjadi kesalahan saat memeriksa akun.');
+    header('Location: login.php');
+    exit;
 }
-
-// =====================================
-// AMBIL DATA PENGGUNA
-// =====================================
-
-mysqli_stmt_bind_result(
-    $stmt,
-    $user_id,
-    $nama,
-    $email_db,
-    $password_db,
-    $role_db
-);
-
-$akun_ditemukan = mysqli_stmt_fetch($stmt);
-
-mysqli_stmt_close($stmt);
-
-// =====================================
-// CEK AKUN
-// =====================================
-
-if (!$akun_ditemukan) {
-    gagal_login('Email atau password salah!');
-}
-
-// =====================================
-// VERIFIKASI PASSWORD
-// =====================================
-
-if (!password_verify($password, $password_db)) {
-    gagal_login('Email atau password salah!');
-}
-
-// =====================================
-// CEK ROLE PENGGUNA
-// =====================================
-
-$role = strtolower(trim($role_db));
-
-if (!in_array($role, ['admin', 'guru'], true)) {
-    gagal_login('Role akun tidak memiliki izin untuk login.');
-}
-
-// =====================================
-// LOGIN BERHASIL
-// =====================================
-
-// Perbarui ID session untuk keamanan.
-session_regenerate_id(true);
-
-// Hapus data session login lama.
-unset(
-    $_SESSION['csrf'],
-    $_SESSION['flash'],
-    $_SESSION['pesan_error']
-);
-
-// Simpan data pengguna ke session.
-$_SESSION['login'] = true;
-
-$_SESSION['user_id'] = (int) $user_id;
-
-$_SESSION['name'] = $nama;
-
-$_SESSION['email'] = strtolower(trim($email_db));
-
-$_SESSION['role'] = $role;
-
-// =====================================
-// ARAHKAN KE DASHBOARD
-// =====================================
-
-header('Location: dashboard.php');
-exit;
-
 ?>
