@@ -10,7 +10,8 @@ if (($_SESSION['role'] ?? '') !== 'admin') {
     exit('Akses ditolak!');
 }
 
-// Ambil hanya kelas XII RPL yang aktif
+// Ambil SEMUA kelas yang terdaftar (kelas baru dari "Tambah Kelas"
+// langsung muncul di sini).
 $sql = "SELECT
             k.id,
             k.nama,
@@ -24,11 +25,10 @@ $sql = "SELECT
                   AND ks.status_aktif = 1
             ) AS jumlah_siswa
         FROM t_kelas k
-        WHERE k.nama = 'RPL'
-          AND k.tingkat = 'XII'
-          AND k.jurusan = 'RPL'
-          AND k.status_aktif = 1
-        ORDER BY k.id ASC";
+        ORDER BY
+            FIELD(k.tingkat, 'X', 'XI', 'XII'),
+            k.jurusan ASC,
+            k.id ASC";
 
 $query = mysqli_query($koneksi, $sql);
 
@@ -167,6 +167,11 @@ $jumlah_kelas = mysqli_num_rows($query);
             color: #166534;
         }
 
+        .status-badge.status-nonaktif {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
         .footer-text {
             color: #94a3b8;
             font-size: 13px;
@@ -225,7 +230,7 @@ $jumlah_kelas = mysqli_num_rows($query);
 
             <h1 class="page-title">Kelola Data Kelas</h1>
             <p class="page-description">
-                Kelola data kelas XII RPL yang aktif.
+                Kelola seluruh data kelas yang terdaftar di sekolah.
             </p>
 
             <div class="content-card">
@@ -234,7 +239,7 @@ $jumlah_kelas = mysqli_num_rows($query);
                     <div>
                         <h5 class="section-title">Data Kelas</h5>
                         <small class="text-muted">
-                            Daftar kelas aktif XII RPL
+                            Daftar seluruh kelas
                         </small>
                     </div>
 
@@ -242,6 +247,12 @@ $jumlah_kelas = mysqli_num_rows($query);
                         + Tambah Kelas
                     </a>
                 </div>
+
+                <?php if (($_GET['pesan'] ?? '') === 'sukses' && !isset($_SESSION['pesan'])): ?>
+                    <div class="alert alert-success mt-3">
+                        Data kelas berhasil ditambahkan.
+                    </div>
+                <?php endif; ?>
 
                 <?php if (isset($_SESSION['pesan'])): ?>
                     <div class="alert alert-info mt-3">
@@ -263,6 +274,7 @@ $jumlah_kelas = mysqli_num_rows($query);
                                 <th>Jurusan</th>
                                 <th>Jumlah Siswa</th>
                                 <th>Status</th>
+                                <th>Aksi</th>
                             </tr>
                         </thead>
 
@@ -286,7 +298,22 @@ $jumlah_kelas = mysqli_num_rows($query);
                                         Siswa
                                     </td>
                                     <td>
-                                        <span class="status-badge">Aktif</span>
+                                        <?php if ((int)$data['status_aktif'] === 1): ?>
+                                            <span class="status-badge">Aktif</span>
+                                        <?php else: ?>
+                                            <span class="status-badge status-nonaktif">Tidak Aktif</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="text-nowrap">
+                                        <a href="edit_kelas.php?id=<?= (int)$data['id']; ?>"
+                                           class="btn btn-warning btn-sm">
+                                            Edit
+                                        </a>
+                                        <a href="hapus_kelas.php?id=<?= (int)$data['id']; ?>"
+                                           class="btn btn-danger btn-sm"
+                                           onclick="return confirm('Yakin ingin menghapus kelas ini?')">
+                                            Hapus
+                                        </a>
                                     </td>
                                 </tr>
                             <?php endwhile; ?>
@@ -315,15 +342,16 @@ $(document).ready(function () {
     $('#tabelKelas').DataTable({
         pageLength: 10,
         lengthMenu: [10, 25, 50, 100],
-        order: [[1, 'asc']],
+        order: [],
         scrollX: true,
+        columnDefs: [{ orderable: false, targets: -1 }],
         language: {
             search: 'Cari:',
             lengthMenu: 'Tampilkan _MENU_ data',
             info: 'Menampilkan _START_ sampai _END_ dari _TOTAL_ data',
             infoEmpty: 'Tidak ada data kelas',
             zeroRecords: 'Kelas tidak ditemukan',
-            emptyTable: 'Belum ada data kelas aktif',
+            emptyTable: 'Belum ada data kelas',
             paginate: {
                 first: 'Pertama',
                 last: 'Terakhir',

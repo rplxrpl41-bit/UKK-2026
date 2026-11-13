@@ -75,6 +75,8 @@ $halaman_guru = [
 
     'rekap_point.php',
 
+    'cetak_rekap_poin.php',
+
     'tentang_saya.php',
 ];
 
@@ -85,6 +87,8 @@ $halaman_guru = [
 $halaman_wali_kelas = [
 
     'laporan.php',
+
+    'cetak_laporan.php',
 ];
 
 // =====================================

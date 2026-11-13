@@ -25,20 +25,21 @@ $is_wali_kelas = (
 // =====================================
 if ($role_sidebar === 'admin') {
 
-    $judul_sidebar = 'My Website';
+    // Menu admin dibuat SAMA dengan sidebar di halaman admin lainnya
+    // (dashboard, kelola_*), termasuk menu About Me.
+    $judul_sidebar = 'Sistem Pelanggaran';
 
     $menu_items = [
         ['dashboard.php', '⌂ Dashboard', 'Dashboard'],
         ['kelola_siswa.php', '♟ Data Siswa', 'Data Siswa'],
-        ['kelola_guru.php', '♙ Data Guru', 'Data Guru'],
+        ['kelola_guru.php', '♟ Data Guru', 'Data Guru'],
         ['kelola_kelas.php', '▦ Data Kelas', 'Data Kelas'],
-        ['kelola_tahun_ajaran.php', '▤ Tahun Ajaran', 'Tahun Ajaran'],
-        ['kelola_wali_kelas.php', '♟ Wali Kelas', 'Wali Kelas'],
-        ['kelola_penempatan_siswa.php', '♧ Penempatan Siswa', 'Penempatan Siswa'],
-        ['kelola_kategori_pelanggaran.php', '⚑ Kategori Pelanggaran', 'Kategori Pelanggaran'],
-        ['menu3.php', '☷ Jenis Pelanggaran', 'Jenis Pelanggaran'],
-        ['menu4.php', '♙ Data Pengguna', 'Data Pengguna'],
-        ['laporan.php', '▤ Laporan', 'Laporan']
+        ['kelola_tahun_ajaran.php', '◷ Kelola Tahun Ajaran', 'Tahun Ajaran'],
+        ['kelola_wali_kelas.php', '♙ Kelola Wali Kelas', 'Wali Kelas'],
+        ['kelola_penempatan_siswa.php', '⇄ Penempatan Siswa', 'Penempatan Siswa'],
+        ['kelola_kategori_pelanggaran.php', '☷ Kategori Pelanggaran', 'Kategori Pelanggaran'],
+        ['laporan.php', '▤ Laporan', 'Laporan'],
+        ['tentang_saya.php', 'ℹ About Me', 'About Me']
     ];
 
 // =====================================
@@ -111,7 +112,9 @@ if ($role_sidebar === 'admin') {
 
     <hr>
 
-    <a href="logout.php" class="nav-link logout">
+    <a href="logout.php"
+       class="nav-link logout"
+       onclick="return confirm('Yakin ingin logout?')">
         ⇥ Logout
     </a>
 

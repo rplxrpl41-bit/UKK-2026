@@ -2,6 +2,7 @@
 <?php
 include 'includes/cek_session.php';
 include 'config/koneksi.php';
+include 'includes/helper_guru.php';
 
 // =====================================
 // PENGATURAN HALAMAN
@@ -26,22 +27,35 @@ function e($nilai)
 // AMBIL DATA LAPORAN
 // =====================================
 
+// Wali kelas / guru hanya melihat laporan yang dia catat atau dia tindak.
+// Admin melihat semua laporan.
+list($sql_batas, $tipe_batas, $param_batas) = batas_data_guru($koneksi, 'ps');
+
 $sql = "
     SELECT
-        id,
-        nama_siswa,
-        nama_kelas,
-        nama_pelanggaran,
-        nama_guru,
-        tanggal,
-        poin,
-        tindakan,
-        status
-    FROM t_pelanggaran_siswa
-    ORDER BY tanggal DESC, id DESC
+        ps.id,
+        ps.nama_siswa,
+        ps.nama_kelas,
+        ps.nama_pelanggaran,
+        ps.nama_guru,
+        ps.tanggal,
+        ps.poin,
+        ps.tindakan,
+        ps.status
+    FROM t_pelanggaran_siswa ps
+    " . ($sql_batas !== '' ? "WHERE $sql_batas" : '') . "
+    ORDER BY ps.tanggal DESC, ps.id DESC
 ";
 
-$query = mysqli_query($koneksi, $sql);
+$stmt_laporan = mysqli_prepare($koneksi, $sql);
+
+if ($stmt_laporan && $param_batas) {
+    mysqli_stmt_bind_param($stmt_laporan, $tipe_batas, ...$param_batas);
+}
+
+$query = ($stmt_laporan && mysqli_stmt_execute($stmt_laporan))
+    ? mysqli_stmt_get_result($stmt_laporan)
+    : false;
 
 if (!$query) {
     die(
@@ -241,13 +255,13 @@ $total_siswa_tercatat = count($total_siswa);
                 </div>
 
                 <div class="no-print">
-                    <button
-                        type="button"
+                    <a
+                        href="cetak_laporan.php"
+                        target="_blank"
                         class="btn btn-primary"
-                        onclick="window.print()"
                     >
                         🖨 Cetak Laporan
-                    </button>
+                    </a>
                 </div>
 
             </div>

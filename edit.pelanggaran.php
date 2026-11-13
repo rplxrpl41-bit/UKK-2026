@@ -47,7 +47,7 @@ if (!$queryKategori) {
 <body>
 <div class="container-fluid">
     <div class="row">
-        <?php $menu_aktif = 'Kategori Pelanggaran'; include 'includes/crud_sidebar.php'; ?>
+        <div class="col-md-3 col-lg-2 p-0"><?php $menu_aktif = 'Kategori Pelanggaran'; include 'includes/crud_sidebar.php'; ?></div>
 
         <main class="col-md-9 col-lg-10 main-content">
             <h1 class="page-title">Edit Pelanggaran</h1>
